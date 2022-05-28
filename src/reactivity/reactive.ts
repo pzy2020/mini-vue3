@@ -19,6 +19,7 @@ export function reactive(data){
             if(activeEffect){
                 // 如果存在注册的副作用函数，则收集进容器
                 deps.add(activeEffect)
+                activeEffect.deps.push(deps)
             }
             // 返回属性值
             return target[key]
@@ -30,8 +31,10 @@ export function reactive(data){
             const depsMap = bucket.get(target)
             if(!depsMap) return false
             const deps = depsMap.get(key)
+            // 新建Set遍历循环执行，直接使用原Set会导致死循环
+            const newDeps = new Set(deps)
             // 从容器内取出所有副作用函数，并执行
-            deps && deps.forEach(fn => fn())
+            newDeps && newDeps.forEach(fn => fn())
             return true
         }
     })

@@ -43,7 +43,7 @@ test("effect收集对应的依赖,也只触发对应的副作用函数", () => {
     })
     let num = 0
     const mockFn = jest.fn(() => {
-        console.log('mockFn call')
+        // console.log('mockFn call')
         num = obj.num1
     })
     effect(mockFn)
