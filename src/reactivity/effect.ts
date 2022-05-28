@@ -2,12 +2,14 @@ export interface IEffectFn {
     (): void
     deps: Array<Set<Function>>
 }
-export let activeEffect
+export let activeEffect:IEffectFn | undefined
+export let effectStack:IEffectFn[] = []
 export function effect(fn: Function){
     try {
         const effectFn:IEffectFn = () => {
             clear(effectFn)
             activeEffect = effectFn
+            effectStack.push(effectFn)
             fn()
         }
         effectFn.deps = []
@@ -16,7 +18,8 @@ export function effect(fn: Function){
     } catch (error) {
         console.log(error)
     } finally {
-        activeEffect = null
+        effectStack.pop()
+        activeEffect = effectStack.length > 0 ? effectStack[effectStack.length - 1] : undefined
     }
     
 }
