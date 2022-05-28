@@ -1,10 +1,14 @@
 export interface IEffectFn {
     (): void
     deps: Array<Set<Function>>
+    options?: IEffectOptions
+}
+export interface IEffectOptions{
+    scheduler?: (fn:Function) => void
 }
 export let activeEffect:IEffectFn | undefined
 export let effectStack:IEffectFn[] = []
-export function effect(fn: Function){
+export function effect(fn: Function, options?:IEffectOptions){
     try {
         const effectFn:IEffectFn = () => {
             clear(effectFn)
@@ -15,6 +19,7 @@ export function effect(fn: Function){
             activeEffect = effectStack.length > 0 ? effectStack[effectStack.length - 1] : undefined
         }
         effectFn.deps = []
+        effectFn.options = options
         effectFn()
         return effectFn
     } catch (error) {

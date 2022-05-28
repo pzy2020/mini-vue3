@@ -1,5 +1,6 @@
 import { effect } from "../effect";
 import { reactive } from "../reactive";
+import { jobQueue,flushJob } from "../../util/scheduler"
 
 test("effect and reactive基本使用", () => {
     let obj = reactive({
@@ -117,4 +118,57 @@ test("effect内响应式数据自增", () => {
     })
     effect(mockFn)
     expect(mockFn).toHaveBeenCalledTimes(1)
+})
+
+// test("可调度的effect", () => {
+//     let obj = reactive({
+//         num: 1,
+//     })
+//     let num
+//     const mockFn = jest.fn(() => {
+//         console.log(obj.num)
+//         num = obj.num
+//     })
+//     effect(mockFn,{
+//         scheduler(fn){
+//             jobQueue.add(fn)
+//             flushJob()
+//         }
+//     })
+
+//     obj.num++
+//     obj.num++
+//     obj.num++
+
+//     expect(num).toBe(4)
+//     // expect(mockFn).toHaveBeenCalledTimes(2)
+// })
+
+test("可调度的effect", () => {
+    let obj = reactive({
+        num: 1,
+    })
+    let num
+    const fn = jest.fn()
+    const scheduler = jest.fn(async (fn) => {
+        jobQueue.add(fn)
+        await flushJob()
+        expect(num).toBe(4)
+    })
+    effect(() => {
+        fn()
+        console.log(obj.num)
+        num = obj.num
+    },{
+        scheduler
+    })
+    expect(scheduler).not.toHaveBeenCalled()
+    obj.num++
+    obj.num++
+    obj.num++
+
+    
+    expect(scheduler).toHaveBeenCalledTimes(3)
+    // expect(fn).toHaveBeenCalledTimes(2)
+    // expect(num).toBe(4)
 })

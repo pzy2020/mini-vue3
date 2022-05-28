@@ -1,7 +1,7 @@
 import { activeEffect } from "./effect"
-
+import { IEffectFn } from "./effect"
 // 存副作用的容器
-const bucket:WeakMap<any,Map<any,Set<Function>>> = new WeakMap()
+const bucket:WeakMap<any,Map<any,Set<IEffectFn>>> = new WeakMap()
 
 export function reactive(data){
     const obj = new Proxy(data, {
@@ -48,13 +48,18 @@ function trigger(target, key){
     // const newDeps = new Set(deps)
     // // 从容器内取出所有副作用函数，并执行
     // newDeps && newDeps.forEach(fn => fn())
-    const effectsToRun:Set<Function> = new Set()
+    const effectsToRun:Set<IEffectFn> = new Set()
     effects && effects.forEach(effectFn => {
         if(effectFn !== activeEffect){
             effectsToRun.add(effectFn)
         }
     })
     effectsToRun && effectsToRun.forEach(effectFn => {
-        effectFn()
+        if(effectFn.options && effectFn.options.scheduler){
+            effectFn.options.scheduler(effectFn)
+        }else{
+            effectFn()
+        }
+        
     })
 }
