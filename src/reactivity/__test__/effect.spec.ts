@@ -57,7 +57,7 @@ test("effect收集对应的依赖,也只触发对应的副作用函数", () => {
     expect(num).toBe(2)
 })
 
-test("代码分支", () => {
+test("effect内代码分支", () => {
     let obj = reactive({
         hasName: true,
         name: 'joy'
@@ -76,4 +76,34 @@ test("代码分支", () => {
     obj.name = 'jack' // 这一次更改name不应该触发副作用函数的重新执行，因为在hasName为false的情况下，name的改变永远影响不到最终执行后的结果
     expect(name).toBe(noName)
     expect(mockFn).toHaveBeenCalledTimes(2)
+})
+
+test("effect嵌套", () => {
+    let obj = reactive({
+        foo: 'foo',
+        bar: 'bar'
+    })
+    let foo,bar
+    const fn1 = jest.fn()
+    const fn2 = jest.fn()
+    effect(() => {
+        fn1()
+        effect(() => {
+            fn2()
+            bar = obj.bar
+        })
+        foo = obj.foo
+    })
+
+    expect(foo).toBe(obj.foo)
+    expect(bar).toBe(obj.bar)
+    expect(fn1).toBeCalledTimes(1)
+    expect(fn2).toBeCalledTimes(1)
+    obj.bar = 'barbar'
+    expect(bar).toBe(obj.bar)
+    expect(fn2).toBeCalledTimes(2)
+    obj.foo = 'foofoo'
+    expect(foo).toBe(obj.foo)
+    expect(fn1).toBeCalledTimes(2)
+    expect(fn2).toBeCalledTimes(3)
 })
