@@ -56,3 +56,24 @@ test("effect收集对应的依赖,也只触发对应的副作用函数", () => {
     expect(mockFn).toHaveBeenCalledTimes(2) // 副作用函数依旧只执行2次
     expect(num).toBe(2)
 })
+
+test("代码分支", () => {
+    let obj = reactive({
+        hasName: true,
+        name: 'joy'
+    })
+    let name = ''
+    const noName = 'no name'
+    const mockFn = jest.fn(() => {
+        name = obj.hasName ? obj.name : noName
+    })
+    effect(mockFn)
+    expect(name).toBe(obj.name)
+    expect(mockFn).toHaveBeenCalledTimes(1)
+    obj.hasName = false
+    expect(name).toBe(noName)
+    expect(mockFn).toHaveBeenCalledTimes(2)
+    obj.name = 'jack' // 这一次更改name不应该触发副作用函数的重新执行，因为在hasName为false的情况下，name的改变永远影响不到最终执行后的结果
+    expect(name).toBe(noName)
+    expect(mockFn).toHaveBeenCalledTimes(2)
+})
