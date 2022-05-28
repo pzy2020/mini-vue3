@@ -11,15 +11,14 @@ export function effect(fn: Function){
             activeEffect = effectFn
             effectStack.push(effectFn)
             fn()
+            effectStack.pop()
+            activeEffect = effectStack.length > 0 ? effectStack[effectStack.length - 1] : undefined
         }
         effectFn.deps = []
         effectFn()
         return effectFn
     } catch (error) {
         console.log(error)
-    } finally {
-        effectStack.pop()
-        activeEffect = effectStack.length > 0 ? effectStack[effectStack.length - 1] : undefined
     }
     
 }
