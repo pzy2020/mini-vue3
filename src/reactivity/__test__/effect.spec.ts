@@ -107,3 +107,14 @@ test("effect嵌套", () => {
     expect(fn1).toBeCalledTimes(2)
     expect(fn2).toBeCalledTimes(3)
 })
+
+test("effect内响应式数据自增", () => {
+    let obj = reactive({
+        num: 1,
+    })
+    const mockFn = jest.fn(() => {
+        obj.num ++
+    })
+    effect(mockFn)
+    expect(mockFn).toHaveBeenCalledTimes(1)
+})
