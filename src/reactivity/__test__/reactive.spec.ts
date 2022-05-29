@@ -19,3 +19,13 @@ test("为什么需要Reflect", () => {
     expect(effectFn).toHaveBeenCalledTimes(2)
     expect(theName).toBe('nike')
 })
+
+test("对象的in操作符",() => {
+    let obj= reactive({name: 'joy'})
+    const effectFn = jest.fn(() => {
+        'name' in obj
+    })
+    effect(effectFn)
+    obj.name = 'nick'
+    expect(effectFn).toHaveBeenCalledTimes(2)
+})

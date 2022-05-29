@@ -18,6 +18,11 @@ export function reactive(data){
             // 设置新属性值
             // target[key] = newValue
             return res
+        },
+        // 对象的in操作符 
+        has(target, key){
+            track(target, key)
+            return Reflect.has(target, key)
         }
     })
 
