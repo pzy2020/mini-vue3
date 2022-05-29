@@ -1,4 +1,4 @@
-import { bucket } from "./reactive"
+import { bucket, ITERATE_KEY } from "./reactive"
 
 export interface IEffectFn {
     (): void
@@ -60,10 +60,11 @@ export function track(target, key){
     activeEffect.deps.push(deps)
 }
 
-export function trigger(target, key){
+export function trigger(target, key, type){
     const depsMap = bucket.get(target)
     if(!depsMap) return false
     const effects = depsMap.get(key)
+
     // 新建Set遍历循环执行，直接使用原Set会导致死循环
     // const newDeps = new Set(deps)
     // // 从容器内取出所有副作用函数，并执行
@@ -74,6 +75,16 @@ export function trigger(target, key){
             effectsToRun.add(effectFn)
         }
     })
+
+    if(type === 'ADD'){
+        const iterateEffects = depsMap.get(ITERATE_KEY)
+        iterateEffects && iterateEffects.forEach(effectFn => {
+            if(effectFn !== activeEffect){
+                effectsToRun.add(effectFn)
+            }
+        })
+    }
+
     effectsToRun && effectsToRun.forEach(effectFn => {
         if(effectFn.options && effectFn.options.scheduler){
             effectFn.options.scheduler(effectFn)

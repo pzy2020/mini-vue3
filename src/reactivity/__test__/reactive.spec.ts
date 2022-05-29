@@ -29,3 +29,18 @@ test("对象的in操作符",() => {
     obj.name = 'nick'
     expect(effectFn).toHaveBeenCalledTimes(2)
 })
+
+test("对象的for in操作符",() => {
+    let obj= reactive({name: 'joy',age: 18})
+    const effectFn = jest.fn(() => {
+        for (const key in obj) {
+            console.log(key)
+        }
+    })
+    effect(effectFn)
+    expect(effectFn).toHaveBeenCalledTimes(1)
+    obj.name = 'nick'
+    expect(effectFn).toHaveBeenCalledTimes(1)
+    obj.height = 60
+    expect(effectFn).toHaveBeenCalledTimes(2)
+})
