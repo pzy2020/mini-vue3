@@ -69,3 +69,27 @@ test("watch的调度优化", () => {
     obj.num1++
     
 })
+
+test("watch整个响应式对象", () => {
+    let obj = reactive({num1: 1, num2: 2})
+    let new_obj,old_obj
+    const mockFn = jest.fn((newVal, oldVal)=>{
+        // console.log(newVal, oldVal)
+        new_obj = newVal
+        old_obj = oldVal
+    })
+    watch(obj,(newVal, oldVal)=>{
+        mockFn(newVal, oldVal)
+    })
+    expect(mockFn).toHaveBeenCalledTimes(0)
+    obj.num1++
+    expect(mockFn).toHaveBeenCalledTimes(1)
+    // 引用类型导致的newVal和oldVal相同
+    expect(new_obj).toEqual({num1: 2, num2: 2})
+    expect(old_obj).toEqual({num1: 2, num2: 2})
+    obj.num2++
+    // 引用类型导致的newVal和oldVal相同
+    expect(mockFn).toHaveBeenCalledTimes(2)
+    expect(new_obj).toEqual({num1: 2, num2: 3})
+    expect(old_obj).toEqual({num1: 2, num2: 3})
+})
