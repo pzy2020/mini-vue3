@@ -1,11 +1,27 @@
 import { effect, track, trigger } from "./effect";
 export function computed(getter:Function){
-    const effectFn = effect(getter,{lazy: true})
+    let value,dirty=true
+
+    const effectFn = effect(getter,{
+        lazy: true,
+        scheduler(){
+            if(!dirty){
+                dirty = true
+                trigger(obj, 'value')
+            }
+        }
+    })
 
 
-    return {
+    const obj = {
         get value(){
-            return effectFn && effectFn()
+            if(dirty){
+                value = effectFn && effectFn()
+                dirty = false
+            }
+            track(obj, 'value')
+            return value
         }
     }
+    return obj
 }

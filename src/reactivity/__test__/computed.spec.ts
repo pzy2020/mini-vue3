@@ -21,8 +21,8 @@ test("computed懒执行", () => {
     expect(numComputed.value).toBe(36)
     expect(mockFn).toBeCalledTimes(1)
     obj.age++
-    expect(mockFn).toBeCalledTimes(2)
     expect(numComputed.value).toBe(38)
+    expect(mockFn).toBeCalledTimes(2)
 })
 
 test("computed缓存特性", () => {
@@ -31,13 +31,20 @@ test("computed缓存特性", () => {
         return obj.age * 2
     })
     let numComputed = computed(mockFn)
+    const mockComputedFn = jest.fn(() => numComputed.value)
+    
     expect(mockFn).toBeCalledTimes(0)
     expect(numComputed.value).toBe(36)
     expect(mockFn).toBeCalledTimes(1)
     expect(numComputed.value).toBe(36)
     expect(numComputed.value).toBe(36)
     expect(mockFn).toBeCalledTimes(1)
+    effect(mockComputedFn)
+    expect(mockComputedFn).toBeCalledTimes(1)
     obj.age++
+    expect(mockComputedFn).toBeCalledTimes(2)
+    
     expect(mockFn).toBeCalledTimes(2)
     expect(numComputed.value).toBe(38)
+    
 })
