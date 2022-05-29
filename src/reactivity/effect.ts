@@ -1,10 +1,13 @@
+import { bucket } from "./reactive"
+
 export interface IEffectFn {
     (): void
     deps: Array<Set<Function>>
     options?: IEffectOptions
 }
 export interface IEffectOptions{
-    scheduler?: (fn:Function) => void
+    scheduler?: (fn:Function) => void,
+    lazy?: boolean
 }
 export let activeEffect:IEffectFn | undefined
 export let effectStack:IEffectFn[] = []
@@ -20,7 +23,10 @@ export function effect(fn: Function, options?:IEffectOptions){
         }
         effectFn.deps = []
         effectFn.options = options
-        effectFn()
+        if(!options?.lazy){
+            effectFn()
+        }
+        
         return effectFn
     } catch (error) {
         console.log(error)
@@ -36,4 +42,45 @@ export function clear(effectFn:IEffectFn){
         }
         effectFn.deps.length = 0
     }
+}
+
+export function track(target, key){
+    let depsMap = bucket.get(target)
+    if(!depsMap){
+        bucket.set(target, (depsMap = new Map()))
+    }
+    let deps = depsMap.get(key)
+    if(!deps){
+        depsMap.set(key, (deps = new Set()))
+    }
+
+    if(activeEffect){
+        // 如果存在注册的副作用函数，则收集进容器
+        deps.add(activeEffect)
+        activeEffect.deps.push(deps)
+    }
+}
+
+export function trigger(target, key){
+    const depsMap = bucket.get(target)
+    if(!depsMap) return false
+    const effects = depsMap.get(key)
+    // 新建Set遍历循环执行，直接使用原Set会导致死循环
+    // const newDeps = new Set(deps)
+    // // 从容器内取出所有副作用函数，并执行
+    // newDeps && newDeps.forEach(fn => fn())
+    const effectsToRun:Set<IEffectFn> = new Set()
+    effects && effects.forEach(effectFn => {
+        if(effectFn !== activeEffect){
+            effectsToRun.add(effectFn)
+        }
+    })
+    effectsToRun && effectsToRun.forEach(effectFn => {
+        if(effectFn.options && effectFn.options.scheduler){
+            effectFn.options.scheduler(effectFn)
+        }else{
+            effectFn()
+        }
+        
+    })
 }
