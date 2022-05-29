@@ -157,7 +157,7 @@ test("可调度的effect", () => {
     })
     effect(() => {
         fn()
-        console.log(obj.num)
+        // console.log(obj.num)
         num = obj.num
     },{
         scheduler

@@ -1,6 +1,8 @@
 import { effect } from "./effect"
+import { jobQueue,flushJob } from "../util/scheduler"
 export interface IWatchOptions {
     immediate?: boolean
+    flush?: 'post' | 'sync'
 }
 export function watch(source:unknown,cb:Function,options:IWatchOptions={}){
     let getter
@@ -20,7 +22,14 @@ export function watch(source:unknown,cb:Function,options:IWatchOptions={}){
 
     const effectFn = effect(getter,{
         lazy: true,
-        scheduler: job
+        scheduler(){
+            if(options.flush == 'post'){
+                jobQueue.add(job)
+                flushJob()
+            }else{
+                job()
+            }
+        }
     })
 
     if(options.immediate){
