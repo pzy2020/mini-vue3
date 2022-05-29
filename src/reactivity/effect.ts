@@ -17,9 +17,10 @@ export function effect(fn: Function, options?:IEffectOptions){
             clear(effectFn)
             activeEffect = effectFn
             effectStack.push(effectFn)
-            fn()
+            let res = fn()
             effectStack.pop()
             activeEffect = effectStack.length > 0 ? effectStack[effectStack.length - 1] : undefined
+            return res
         }
         effectFn.deps = []
         effectFn.options = options
