@@ -46,6 +46,8 @@ export function clear(effectFn:IEffectFn){
 }
 
 export function track(target, key){
+    // 如果不存在正在执行的副作用函数，则直接返回
+    if (!activeEffect) return
     let depsMap = bucket.get(target)
     if(!depsMap){
         bucket.set(target, (depsMap = new Map()))
@@ -54,12 +56,8 @@ export function track(target, key){
     if(!deps){
         depsMap.set(key, (deps = new Set()))
     }
-
-    if(activeEffect){
-        // 如果存在注册的副作用函数，则收集进容器
-        deps.add(activeEffect)
-        activeEffect.deps.push(deps)
-    }
+    deps.add(activeEffect)
+    activeEffect.deps.push(deps)
 }
 
 export function trigger(target, key){
