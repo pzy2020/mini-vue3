@@ -32,6 +32,15 @@ export function reactive(data){
         ownKeys(target){
             track(target, ITERATE_KEY)
             return Reflect.ownKeys(target)
+        },
+        // 对象的delete操作
+        deleteProperty(target,key){
+            const isOwn = Object.prototype.hasOwnProperty.call(target,key)
+            const res = Reflect.deleteProperty(target,key)
+            if(isOwn && res){
+                trigger(target, key, 'DELETE')
+            }
+            return res
         }
     })
 

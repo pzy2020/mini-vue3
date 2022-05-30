@@ -1,5 +1,7 @@
 import { bucket, ITERATE_KEY } from "./reactive"
 
+export type triggerType = 'SET' | 'ADD' | 'DELETE'
+
 export interface IEffectFn {
     (): void
     deps: Array<Set<Function>>
@@ -60,7 +62,7 @@ export function track(target, key){
     activeEffect.deps.push(deps)
 }
 
-export function trigger(target, key, type){
+export function trigger(target, key, type:triggerType){
     const depsMap = bucket.get(target)
     if(!depsMap) return false
     const effects = depsMap.get(key)
@@ -75,8 +77,8 @@ export function trigger(target, key, type){
             effectsToRun.add(effectFn)
         }
     })
-
-    if(type === 'ADD'){
+    
+    if(type === 'ADD' || type === 'DELETE'){
         const iterateEffects = depsMap.get(ITERATE_KEY)
         iterateEffects && iterateEffects.forEach(effectFn => {
             if(effectFn !== activeEffect){
