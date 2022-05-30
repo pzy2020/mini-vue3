@@ -16,11 +16,13 @@ export function reactive(data){
         },
         // 拦截设置操作
         set(target, key, newValue,receiver){
+            // 获取旧值
+            const oldVal = target[key]
             const type = Object.prototype.hasOwnProperty.call(target,key) ? 'SET' : 'ADD'
             const res = Reflect.set(target,key,newValue,receiver)
-            trigger(target, key, type)
-            // 设置新属性值
-            // target[key] = newValue
+            if(oldVal !== newValue && (oldVal === oldVal || newValue === newValue)){
+                trigger(target, key, type)
+            }
             return res
         },
         // 对象的in操作符 

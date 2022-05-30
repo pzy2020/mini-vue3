@@ -76,3 +76,17 @@ test("合理地触发响应，设置的新值全等于旧值", () => {
     obj.name = 'nick'
     expect(effectFn).toHaveBeenCalledTimes(2)
 })
+
+test("合理地触发响应，NaN的情况", () => {
+    let obj= reactive({num: 1})
+    let age
+    const effectFn = jest.fn(() => {
+        age = obj.num
+    })
+    effect(effectFn)
+    expect(effectFn).toHaveBeenCalledTimes(1)
+    obj.num = NaN
+    expect(effectFn).toHaveBeenCalledTimes(2)
+    obj.num = NaN
+    expect(effectFn).toHaveBeenCalledTimes(2)
+})
