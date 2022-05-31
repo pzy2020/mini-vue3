@@ -1,5 +1,5 @@
 import { effect } from "../effect";
-import { reactive, shallowReactive, isReactive } from "../reactive";
+import { reactive, shallowReactive, readonly, shallowReadonly, isReactive, isReadonly} from "../reactive";
 
 test("为什么需要Reflect", () => {
     let obj = reactive({
@@ -136,4 +136,41 @@ test("浅层响应式", () => {
     expect(isReactive(observed)).toBe(true)
     // get
     expect(observed.bar.name).toBe('joy')
+})
+
+test("只读数据", () => {
+    const realObj = { foo: 1, bar: { name: 'joy' } }
+    const observed = readonly(realObj)
+    expect(observed).not.toBe(realObj)
+    expect(isReadonly(observed.foo)).toBe(false)
+    expect(isReadonly(observed)).toBe(true)
+    expect(isReadonly(realObj)).toBe(false)
+    // get
+    expect(observed.foo).toBe(1)
+    // has
+    expect('foo' in observed).toBe(true)
+    // ownKeys
+    expect(Object.keys(observed)).toEqual(['foo', 'bar'])
+    // delete
+    // expect(delete observed.foo).toThrowError()
+    // expect(observed.foo = 2).toThrowError()
+    // expect(observed.bar.name = 'nick').toThrowError()
+    delete observed.foo
+    observed.foo = 2
+    expect(observed.foo).toBe(1)
+    observed.bar.name = 'nick'
+    expect(observed.bar.name).toBe('joy')
+})
+
+test("浅只读数据", () => {
+    const realObj = { foo: 1, bar: { name: 'joy' } }
+    const observed = shallowReadonly(realObj)
+    expect(isReadonly(observed.foo)).toBe(false)
+    expect(isReadonly(observed.bar)).toBe(false)
+    expect(isReadonly(observed)).toBe(true)
+    delete observed.foo
+    observed.foo = 2
+    expect(observed.foo).toBe(1)
+    observed.bar.name = 'nick'
+    expect(observed.bar.name).toBe('nick')
 })

@@ -8,27 +8,35 @@ export const ITERATE_KEY = Symbol()
 export const ReactiveFlags = {
     IS_REACTIVE: '__v_isReactive',
     RAW: '__v_raw',
+    IS_READONLY: '__v_isReadonly',
 }
 
-export function createReactive(data, isShallow = false){
+export function createReactive(data, isShallow = false, isReadonly = false){
     const obj = new Proxy(data, {
         // 拦截读取操作
         get(target, key, receiver){
-            if(key === ReactiveFlags.IS_REACTIVE){
-                return true
-            }else if(key === ReactiveFlags.RAW) {
+            if(key === ReactiveFlags.IS_READONLY){
+                return isReadonly
+            }else if(key === ReactiveFlags.IS_REACTIVE){
+                return !isReadonly
+            }
+            else if(key === ReactiveFlags.RAW) {
                 return target
             }
             
             const res = Reflect.get(target, key, receiver)
-            track(target, key)
+
+            if(!isReadonly){
+                track(target, key)
+            }
+
             if(isShallow){
                 return res
             }
 
             // 当访问的属性是对象时，再把属性对象代理成响应式对象，就是懒代理
             if(typeof res === 'object' && res !== null){
-                return reactive(res)
+                return isReadonly ? readonly(res) : reactive(res)
             }
             // 返回属性值
             return res
@@ -36,6 +44,11 @@ export function createReactive(data, isShallow = false){
         },
         // 拦截设置操作
         set(target, key, newValue,receiver){
+            // 如果是只读的，则打印警告信息并返回
+            if(isReadonly){
+                console.warn(`属性 ${key} 是只读的`)
+                return true
+            }
             // 获取旧值
             const oldVal = target[key]
             const type = Object.prototype.hasOwnProperty.call(target,key) ? 'SET' : 'ADD'
@@ -62,6 +75,11 @@ export function createReactive(data, isShallow = false){
         },
         // 对象的delete操作
         deleteProperty(target,key){
+            // 如果是只读的，则打印警告信息并返回
+            if(isReadonly){
+                console.warn(`属性 ${key} 是只读的`)
+                return true
+            }
             const isOwn = Object.prototype.hasOwnProperty.call(target,key)
             const res = Reflect.deleteProperty(target,key)
             if(isOwn && res){
@@ -82,9 +100,22 @@ export function shallowReactive(data) {
     return createReactive(data, true)
 }
 
+export function readonly(data) {
+    return createReactive(data, false, true)
+}
+
+export function shallowReadonly(data) {
+    return createReactive(data, true, true)
+}
+
 export function isReactive(value: object) {
     // 判断是不是有__isReactive属性
     return !!value[ReactiveFlags.IS_REACTIVE]
+}
+
+export function isReadonly(value: object) {
+    // 判断是不是有__isReadonly属性
+    return !!value[ReactiveFlags.IS_READONLY]
 }
 
 // export function reactive(data){
