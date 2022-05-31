@@ -1,5 +1,5 @@
 import { effect } from "../effect";
-import { reactive } from "../reactive";
+import { reactive, shallowReactive, isReactive } from "../reactive";
 
 test("为什么需要Reflect", () => {
     let obj = reactive({
@@ -105,4 +105,35 @@ test("合理地触发响应，原型链继承的情况", () => {
     expect(effectFn).toHaveBeenCalledTimes(1)
     child.name = 'nick'
     expect(effectFn).toHaveBeenCalledTimes(2)
+})
+
+test("响应式数据", () => {
+    const realObj = { foo: 1, bar: { name: 'joy' } }
+    const observed = reactive(realObj)
+    expect(observed).not.toBe(realObj)
+    expect(isReactive(observed.foo)).toBe(false)
+    expect(isReactive(observed)).toBe(true)
+    expect(isReactive(realObj)).toBe(false)
+    // get
+    expect(observed.foo).toBe(1)
+    // has
+    expect('foo' in observed).toBe(true)
+    // ownKeys
+    expect(Object.keys(observed)).toEqual(['foo', 'bar'])
+    // delete
+    delete observed.foo
+    expect('foo' in observed).toBe(false)
+    // deep reactive
+    expect(observed.bar.name).toBe('joy')
+    expect(isReactive(observed.bar)).toBe(true)
+})
+
+test("浅层响应式", () => {
+    const realObj = { foo: 1, bar: { name: 'joy' } }
+    const observed = shallowReactive(realObj)
+    expect(isReactive(observed.foo)).toBe(false)
+    expect(isReactive(observed.bar)).toBe(false)
+    expect(isReactive(observed)).toBe(true)
+    // get
+    expect(observed.bar.name).toBe('joy')
 })
