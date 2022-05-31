@@ -90,3 +90,19 @@ test("合理地触发响应，NaN的情况", () => {
     obj.num = NaN
     expect(effectFn).toHaveBeenCalledTimes(2)
 })
+
+test("合理地触发响应，原型链继承的情况", () => {
+    let child = reactive({})
+    let parent = reactive({name: 'joy'})
+    Object.setPrototypeOf(child,parent)
+    let name
+    const effectFn = jest.fn(()=>{
+        // 由于child自身没有name属性，所以会顺着原型链往上继续查找，找到parent的name
+        // 所以child['name']和parent['name']都会和副作用产生关联
+        name = child.name
+    })
+    effect(effectFn)
+    expect(effectFn).toHaveBeenCalledTimes(1)
+    child.name = 'nick'
+    expect(effectFn).toHaveBeenCalledTimes(2)
+})

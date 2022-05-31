@@ -9,6 +9,13 @@ export function reactive(data){
     const obj = new Proxy(data, {
         // 拦截读取操作
         get(target, key, receiver){
+            // if(key === 'raw' && receiver === bucket.get(target)) {
+            //     return target
+            // }
+            if(key === 'raw') {
+                return target
+            }
+            // const res = Reflect.get(target, key, receiver)
             track(target, key)
             // 返回属性值
             return Reflect.get(target, key, receiver)
@@ -20,9 +27,14 @@ export function reactive(data){
             const oldVal = target[key]
             const type = Object.prototype.hasOwnProperty.call(target,key) ? 'SET' : 'ADD'
             const res = Reflect.set(target,key,newValue,receiver)
-            if(oldVal !== newValue && (oldVal === oldVal || newValue === newValue)){
-                trigger(target, key, type)
+            // receiver是target的代理对象才触发
+            if(target === receiver['raw']){
+                // 新旧值不同并且新旧值都不为NaN
+                if(oldVal !== newValue && (oldVal === oldVal || newValue === newValue)){
+                    trigger(target, key, type)
+                }
             }
+            
             return res
         },
         // 对象的in操作符 
