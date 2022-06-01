@@ -26,7 +26,7 @@ export function createReactive(data, isShallow = false, isReadonly = false){
             
             const res = Reflect.get(target, key, receiver)
 
-            if(!isReadonly){
+            if(!isReadonly && typeof key !== 'symbol'){
                 track(target, key)
             }
 
@@ -51,13 +51,15 @@ export function createReactive(data, isShallow = false, isReadonly = false){
             }
             // 获取旧值
             const oldVal = target[key]
-            const type = Object.prototype.hasOwnProperty.call(target,key) ? 'SET' : 'ADD'
+            const type = Array.isArray(target) 
+                ? Number(key) >= target.length ? 'ADD' : 'SET'
+                : Object.prototype.hasOwnProperty.call(target,key) ? 'SET' : 'ADD'
             const res = Reflect.set(target,key,newValue,receiver)
             // receiver是target的代理对象才触发
             if(target === receiver[ReactiveFlags.RAW]){
                 // 新旧值不同并且新旧值都不为NaN
                 if(oldVal !== newValue && (oldVal === oldVal || newValue === newValue)){
-                    trigger(target, key, type)
+                    trigger(target, key , type, newValue)
                 }
             }
             
@@ -70,7 +72,7 @@ export function createReactive(data, isShallow = false, isReadonly = false){
         },
         // 对象的for in 操作符
         ownKeys(target){
-            track(target, ITERATE_KEY)
+            track(target, Array.isArray(target) ? 'length': ITERATE_KEY)
             return Reflect.ownKeys(target)
         },
         // 对象的delete操作

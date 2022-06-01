@@ -62,7 +62,7 @@ export function track(target, key){
     activeEffect.deps.push(deps)
 }
 
-export function trigger(target, key, type:triggerType){
+export function trigger(target, key, type:triggerType, newValue){
     const depsMap = bucket.get(target)
     if(!depsMap) return false
     const effects = depsMap.get(key)
@@ -77,7 +77,31 @@ export function trigger(target, key, type:triggerType){
             effectsToRun.add(effectFn)
         }
     })
+
+    // 处理设置数组length属性,导致删除了部分数组的元素，被删除的元素应该有响应
+    if(key === 'length' && Array.isArray(target)){
+        depsMap.forEach((effects, k) => {
+            if(k >= newValue){
+                effects.forEach(fn => {
+                    if(fn !== activeEffect){
+                        effectsToRun.add(fn)
+                    }
+                });
+            }
+        })
+    }
+
+    // 处理数组新增元素，对数组length的影响
+    if(type === 'ADD' && Array.isArray(target)){
+        const lengthEffects = depsMap.get('length')
+        lengthEffects && lengthEffects.forEach(effectFn => {
+            if(effectFn !== activeEffect){
+                effectsToRun.add(effectFn)
+            }
+        })
+    }
     
+    // 处理新增和删除对fon in 操作符
     if(type === 'ADD' || type === 'DELETE'){
         const iterateEffects = depsMap.get(ITERATE_KEY)
         iterateEffects && iterateEffects.forEach(effectFn => {

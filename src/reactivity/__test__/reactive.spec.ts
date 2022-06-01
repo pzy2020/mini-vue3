@@ -174,3 +174,63 @@ test("浅只读数据", () => {
     observed.bar.name = 'nick'
     expect(observed.bar.name).toBe('nick')
 })
+
+test("数组索引", () => {
+    const observed = reactive(['foo'])
+    let len = 0
+    const effectFn = jest.fn(() => {
+        len = observed.length
+    })
+    effect(effectFn)
+    observed[1] = 'bar'
+    expect(effectFn).toHaveBeenCalledTimes(2)
+    expect(observed.length).toBe(2)
+})
+
+test("数组length", () => {
+    const observed = reactive(['foo'])
+    let value
+    const effectFn = jest.fn(() => {
+        value = observed[0]
+    })
+    effect(effectFn)
+    observed.length = 0
+    expect(value).toBeUndefined()
+    expect(effectFn).toHaveBeenCalledTimes(2)
+})
+
+test("数组的依赖搜集", () => {
+    const realArr = [{ foo: 1, bar: { name: 'joy' } },{ foo: 2, bar: { name: 'nick' } }]
+    const observed = reactive(realArr)
+    expect(observed).not.toBe(realArr)
+
+    expect(observed[0]).toEqual(realArr[0])
+    expect(observed[0].foo).toEqual(realArr[0].foo)
+    expect(observed[0].bar.name).toEqual(realArr[0].bar.name)
+
+    // for in
+    const forinFn = jest.fn(() => {
+        for (const key in observed) {
+            console.log(key)
+        }
+    })
+    effect(forinFn)
+    expect(forinFn).toHaveBeenCalledTimes(1)
+    observed.push({ foo: 3, bar: { name: 'map' }})
+    expect(forinFn).toHaveBeenCalledTimes(2)
+
+    // for of
+    const realArrForOf = [{ foo: 3, bar: { name: 'joy' } },{ foo: 4, bar: { name: 'nick' } }]
+    const observedForof = reactive(realArr)
+    const forofFn = jest.fn(() => {
+        for (const iterator of observedForof) {
+            console.log(iterator)
+        }
+    })
+    effect(forofFn)
+    expect(forofFn).toHaveBeenCalledTimes(1)
+    observed.push({ foo: 5, bar: { name: 'map' }})
+    expect(forofFn).toHaveBeenCalledTimes(2)
+
+
+})
