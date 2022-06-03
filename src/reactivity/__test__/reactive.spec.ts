@@ -323,3 +323,48 @@ test("数组的push", () => {
     expect(effectFn2).toHaveBeenCalledTimes(1)
     expect(observed.length).toBe(2)
 })
+
+test("数组的unshift", () => {
+    const observed = reactive([])
+    const effectFn1 = jest.fn(() => {
+        observed.unshift(1)
+    })
+    const effectFn2 = jest.fn(() => {
+        observed.unshift(2)
+    })
+    effect(effectFn1)
+    effect(effectFn2)
+    expect(effectFn1).toHaveBeenCalledTimes(1)
+    expect(effectFn2).toHaveBeenCalledTimes(1)
+    expect(observed.length).toBe(2)
+})
+
+test("数组的pop", () => {
+    const observed = reactive(['1','2'])
+    const effectFn1 = jest.fn(() => {
+        observed.pop()
+    })
+    const effectFn2 = jest.fn(() => {
+        observed.pop()
+    })
+    effect(effectFn1)
+    effect(effectFn2)
+    expect(effectFn1).toHaveBeenCalledTimes(1)
+    expect(effectFn2).toHaveBeenCalledTimes(1)
+    expect(observed.length).toBe(0)
+})
+
+test("数组的shift", () => {
+    const observed = reactive(['1','2'])
+    const effectFn1 = jest.fn(() => {
+        observed.shift()
+    })
+    const effectFn2 = jest.fn(() => {
+        observed.shift()
+    })
+    effect(effectFn1)
+    effect(effectFn2)
+    expect(effectFn1).toHaveBeenCalledTimes(1)
+    expect(effectFn2).toHaveBeenCalledTimes(1)
+    expect(observed.length).toBe(0)
+})
