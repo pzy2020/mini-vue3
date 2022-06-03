@@ -11,6 +11,22 @@ export const ReactiveFlags = {
     IS_READONLY: '__v_isReadonly',
 }
 
+export const reactiveCache = new Map()
+export const readonlyCache = new Map()
+
+const originIncludes = Array.prototype.includes
+const arrayInstrumentations = {
+    includes: function(...args:any){
+        // this 是代理对象, 先在代理对象中查找
+        let res = originIncludes.apply(this, args)
+        if(res === false){
+            // 在代理对象找不到，就去原始对象里找
+            res = originIncludes.apply(this[ReactiveFlags.RAW], args)
+        }
+        return res
+    }
+}
+
 export function createReactive(data, isShallow = false, isReadonly = false){
     const obj = new Proxy(data, {
         // 拦截读取操作
@@ -24,6 +40,11 @@ export function createReactive(data, isShallow = false, isReadonly = false){
                 return target
             }
             
+            // 如果操作的目标对象是数组，并且key存在于arrayInstrumentations，则返回定义在arrayInstrumentations的值
+            if(Array.isArray(target) && arrayInstrumentations.hasOwnProperty(key)){
+                return Reflect.get(arrayInstrumentations, key, receiver)
+            }
+
             const res = Reflect.get(target, key, receiver)
 
             if(!isReadonly && typeof key !== 'symbol'){
@@ -90,12 +111,18 @@ export function createReactive(data, isShallow = false, isReadonly = false){
             return res
         }
     })
-
     return obj
 }
 
 export function reactive(data) {
-    return createReactive(data)
+    // 已代理过的对象直接返回
+    const reactiveObj = reactiveCache.get(data)
+    if(reactiveObj){
+        return reactiveObj
+    }
+    const proxy = createReactive(data)
+    reactiveCache.set(data,proxy)
+    return proxy
 }
 
 export function shallowReactive(data) {
@@ -103,7 +130,14 @@ export function shallowReactive(data) {
 }
 
 export function readonly(data) {
-    return createReactive(data, false, true)
+    // 已代理过的对象直接返回
+    const readonlyObj = readonlyCache.get(data)
+    if(readonlyObj){
+        return readonlyObj
+    }
+    const proxy = createReactive(data, false, true)
+    readonlyCache.set(data,proxy)
+    return proxy
 }
 
 export function shallowReadonly(data) {

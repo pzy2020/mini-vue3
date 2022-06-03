@@ -234,3 +234,53 @@ test("数组的依赖搜集", () => {
 
 
 })
+
+test("数组的includes",() => {
+    const realArr = ['foo', 'bar']
+    const observed = reactive(realArr)
+    let value
+    const effectFn = jest.fn(() => {
+        value = observed.includes('foo')
+    })
+    effect(effectFn)
+    expect(value).toBe(true)
+    observed[0] = 'car'
+    expect(value).toBe(false)
+    expect(effectFn).toHaveBeenCalledTimes(2)
+})
+
+test("数组的includes,对象的情况:reactive",() => {
+    const obj = {}
+    const realArr = [obj]
+    const observed = reactive(realArr)
+    let value
+    const effectFn = jest.fn(() => {
+        value = observed.includes(observed[0])
+    })
+    effect(effectFn)
+    expect(value).toBe(true)
+})
+
+test("数组的includes,对象的情况:readonly",() => {
+    const obj = {}
+    const realArr = [obj]
+    const observed = readonly(realArr)
+    let value
+    const effectFn = jest.fn(() => {
+        value = observed.includes(observed[0])
+    })
+    effect(effectFn)
+    expect(value).toBe(true)
+})
+
+test("数组的includes,对象的情况2",() => {
+    const obj = {}
+    const realArr = [obj]
+    const observed = reactive(realArr)
+    let value
+    const effectFn = jest.fn(() => {
+        value = observed.includes(obj)
+    })
+    effect(effectFn)
+    expect(value).toBe(true)
+})
