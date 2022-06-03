@@ -284,3 +284,27 @@ test("数组的includes,对象的情况2",() => {
     effect(effectFn)
     expect(value).toBe(true)
 })
+
+test("数组的indexOf,对象的情况",() => {
+    const obj = {}
+    const realArr = [obj]
+    const observed = reactive(realArr)
+    let value
+    const effectFn = jest.fn(() => {
+        value = observed.indexOf(obj)
+    })
+    effect(effectFn)
+    expect(value).toBe(0)
+})
+
+test("数组的lastIndexOf,对象的情况",() => {
+    const obj = {}
+    const realArr = [obj]
+    const observed = reactive(realArr)
+    let value
+    const effectFn = jest.fn(() => {
+        value = observed.lastIndexOf(obj)
+    })
+    effect(effectFn)
+    expect(value).toBe(0)
+})

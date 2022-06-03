@@ -14,18 +14,32 @@ export const ReactiveFlags = {
 export const reactiveCache = new Map()
 export const readonlyCache = new Map()
 
-const originIncludes = Array.prototype.includes
-const arrayInstrumentations = {
-    includes: function(...args:any){
+const arrayInstrumentations = {}
+;['includes','indexOf','lastIndexOf'].forEach(method => {
+    const originMethod = Array.prototype[method]
+    arrayInstrumentations[method] = function(...args) {
         // this 是代理对象, 先在代理对象中查找
-        let res = originIncludes.apply(this, args)
-        if(res === false){
+        let res = originMethod.apply(this, args)
+        if(res === false || res < 0){
             // 在代理对象找不到，就去原始对象里找
-            res = originIncludes.apply(this[ReactiveFlags.RAW], args)
+            res = originMethod.apply(this[ReactiveFlags.RAW], args)
         }
         return res
     }
-}
+})
+
+// const originIncludes = Array.prototype.includes
+// const arrayInstrumentations = {
+//     includes: function(...args:any){
+//         // this 是代理对象, 先在代理对象中查找
+//         let res = originIncludes.apply(this, args)
+//         if(res === false){
+//             // 在代理对象找不到，就去原始对象里找
+//             res = originIncludes.apply(this[ReactiveFlags.RAW], args)
+//         }
+//         return res
+//     }
+// }
 
 export function createReactive(data, isShallow = false, isReadonly = false){
     const obj = new Proxy(data, {
