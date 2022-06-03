@@ -308,3 +308,18 @@ test("数组的lastIndexOf,对象的情况",() => {
     effect(effectFn)
     expect(value).toBe(0)
 })
+
+test("数组的push", () => {
+    const observed = reactive([])
+    const effectFn1 = jest.fn(() => {
+        observed.push(1)
+    })
+    const effectFn2 = jest.fn(() => {
+        observed.push(2)
+    })
+    effect(effectFn1)
+    effect(effectFn2)
+    expect(effectFn1).toHaveBeenCalledTimes(1)
+    expect(effectFn2).toHaveBeenCalledTimes(1)
+    expect(observed.length).toBe(2)
+})

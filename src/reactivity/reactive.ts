@@ -11,6 +11,9 @@ export const ReactiveFlags = {
     IS_READONLY: '__v_isReadonly',
 }
 
+// 禁止trace标志
+export let shouldTrack = true
+
 export const reactiveCache = new Map()
 export const readonlyCache = new Map()
 
@@ -24,6 +27,18 @@ const arrayInstrumentations = {}
             // 在代理对象找不到，就去原始对象里找
             res = originMethod.apply(this[ReactiveFlags.RAW], args)
         }
+        return res
+    }
+})
+
+;['push'].forEach(method => {
+    const originMethod = Array.prototype[method]
+    arrayInstrumentations[method] = function(...args){
+        // 调用原始方法前禁止追踪，阻止push方法内部会访问length属性引起不必要的依赖收集
+        shouldTrack = false
+        let res = originMethod.apply(this,args)
+        // 执行完，允许追踪
+        shouldTrack = true
         return res
     }
 })

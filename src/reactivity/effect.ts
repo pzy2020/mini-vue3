@@ -1,4 +1,4 @@
-import { bucket, ITERATE_KEY } from "./reactive"
+import { bucket, ITERATE_KEY, shouldTrack} from "./reactive"
 
 export type triggerType = 'SET' | 'ADD' | 'DELETE'
 
@@ -48,8 +48,8 @@ export function clear(effectFn:IEffectFn){
 }
 
 export function track(target, key){
-    // 如果不存在正在执行的副作用函数，则直接返回
-    if (!activeEffect) return
+    // 如果不存在正在执行的副作用函数或者shouldTrack标志为false禁止追踪，则直接返回
+    if (!activeEffect || !shouldTrack) return
     let depsMap = bucket.get(target)
     if(!depsMap){
         bucket.set(target, (depsMap = new Map()))
