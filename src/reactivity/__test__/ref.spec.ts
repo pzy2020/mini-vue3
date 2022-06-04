@@ -1,4 +1,4 @@
-import { ref, isRef, unRef } from "../ref";
+import { ref, isRef, unRef, proxyRefs } from "../ref";
 import { effect } from "../effect";
 import { reactive } from "../reactive";
 
@@ -50,4 +50,20 @@ test("unRef", () => {
     expect(unRef(num)).toBe(1)
     expect(unRef(user)).toEqual(obj)
     expect(unRef(obj)).toEqual(obj)
+})
+
+test("proxyRefs", () => {
+    const user = {
+        name: 'joy',
+        age: ref(18)
+    }
+
+    let proxyUser = proxyRefs(user)
+    expect(proxyUser.age).toBe(18)
+    expect(user.age.value).toBe(18)
+
+    proxyUser.age = 28
+    expect(proxyUser.age).toBe(28)
+    expect(user.age.value).toBe(28)
+
 })
