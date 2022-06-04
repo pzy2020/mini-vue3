@@ -1,4 +1,4 @@
-import { ref, isRef } from "../ref";
+import { ref, isRef, unRef } from "../ref";
 import { effect } from "../effect";
 import { reactive } from "../reactive";
 
@@ -37,4 +37,17 @@ test("isRef", () => {
     const obj = reactive({num: 1})
     expect(isRef(count)).toBeTruthy()
     expect(isRef(obj)).toBeFalsy()
+})
+
+test("unRef", () => {
+    const num = 1
+    const obj = {
+        name: 'joy'
+    }
+    const count = ref(num)
+    const user = ref(obj)
+    expect(unRef(count)).toBe(1)
+    expect(unRef(num)).toBe(1)
+    expect(unRef(user)).toEqual(obj)
+    expect(unRef(obj)).toEqual(obj)
 })

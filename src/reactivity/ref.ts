@@ -1,5 +1,5 @@
 import { track,trigger } from "./effect";
-import { reactive } from "./reactive";
+import { reactive,toRaw } from "./reactive";
 
 class RefImpl {
     private __isRef: Boolean
@@ -38,4 +38,8 @@ function convert(val){
 
 export function isRef(val){
     return !!(val && val.__isRef)
+}
+
+export function unRef(ref) {
+    return isRef(ref) ? ref.value : ref
 }

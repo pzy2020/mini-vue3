@@ -1,5 +1,5 @@
 import { effect } from "../effect";
-import { reactive, shallowReactive, readonly, shallowReadonly, isReactive, isReadonly} from "../reactive";
+import { reactive, shallowReactive, readonly, shallowReadonly, isReactive, isReadonly, toRaw} from "../reactive";
 
 test("为什么需要Reflect", () => {
     let obj = reactive({
@@ -367,4 +367,15 @@ test("数组的shift", () => {
     expect(effectFn1).toHaveBeenCalledTimes(1)
     expect(effectFn2).toHaveBeenCalledTimes(1)
     expect(observed.length).toBe(0)
+})
+
+test("toRaw", () => {
+    const realObj = { foo: 1, bar: { name: 'joy' } }
+    const observed = reactive(realObj)
+    expect(toRaw(observed)).toBe(realObj)
+    expect(toRaw(realObj)).toBe(realObj)
+    const observed2 = reactive(observed)
+    expect(toRaw(observed2)).toBe(realObj)
+    const observed3 = reactive({observed2,common: {age: 1}})
+    expect(toRaw(observed3)).toEqual({observed2: { foo: 1, bar: { name: 'joy' }},common:{age: 1}})
 })

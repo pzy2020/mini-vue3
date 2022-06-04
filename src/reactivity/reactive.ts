@@ -183,6 +183,11 @@ export function isReadonly(value: object) {
     return !!value[ReactiveFlags.IS_READONLY]
 }
 
+export function toRaw(observed){
+    const raw = observed && observed[ReactiveFlags.RAW]
+    return raw ? toRaw(raw) : observed
+}
+
 // export function reactive(data){
 //     const obj = new Proxy(data, {
 //         // 拦截读取操作
