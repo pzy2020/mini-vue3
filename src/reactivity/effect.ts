@@ -62,7 +62,7 @@ export function track(target, key){
     activeEffect.deps.push(deps)
 }
 
-export function trigger(target, key, type:triggerType, newValue?){
+export function trigger(target, key, type?:triggerType, newValue?){
     const depsMap = bucket.get(target)
     if(!depsMap) return false
     const effects = depsMap.get(key)
