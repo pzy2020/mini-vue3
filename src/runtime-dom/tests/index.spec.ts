@@ -1,4 +1,4 @@
-import { createRenderer } from '../index'
+import { renderer } from '../index'
 import { ref } from '../../reactivity/ref'
 import { effect } from '../../reactivity/effect'
 
@@ -19,7 +19,7 @@ test("挂载渲染普通的简单元素", () => {
         type: 'p',
         children: text
     }
-    let renderer = createRenderer()
+    
     renderer.render(vnode, document.querySelector('#app'))
     expect(dom.querySelector('p')?.innerHTML).toBe(text)
 })
@@ -38,7 +38,7 @@ test("挂载渲染嵌套的普通元素", () => {
             }
         ]
     }
-    let renderer = createRenderer()
+    
     renderer.render(vnode, document.querySelector('#app'))
     expect(dom.querySelector('p')?.innerHTML).toBe(text)
 })
@@ -48,7 +48,7 @@ test("普通的简单元素更新", () => {
     let dom = document.createElement('div')
     dom.setAttribute('id', 'app')
     document.body.append(dom)
-    let renderer = createRenderer()
+    
     let textVal
     effect(() => {
         textVal = text.value
@@ -76,7 +76,7 @@ test("正确的设置元素属性:disabled", () => {
         },
         children: 'Submit'
     }
-    let renderer = createRenderer()
+    
     renderer.render(vnode, document.querySelector('#app'))
     let submitDom = document.querySelector('button')
     expect(submitDom?.innerHTML).toBe('Submit')
@@ -95,7 +95,7 @@ test("正确的设置元素属性:class", () => {
         },
         children: 'Submit'
     }
-    let renderer = createRenderer()
+    
     renderer.render(vnode, document.querySelector('#app'))
     let submitDom = document.querySelector('button')
     expect(submitDom?.innerHTML).toBe('Submit')
@@ -115,7 +115,7 @@ test("正确的设置元素属性:style", () => {
         },
         children: 'Submit'
     }
-    let renderer = createRenderer()
+    
     renderer.render(vnode, document.querySelector('#app'))
     let submitDom:HTMLButtonElement|null = document.querySelector('#submit')
     expect(submitDom?.style.color).toBe('rgb(0, 0, 0)')
@@ -131,7 +131,7 @@ test("render方法卸载元素", () => {
         type: 'p',
         children: text
     }
-    let renderer = createRenderer()
+    
     renderer.render(vnode, document.querySelector('#app'))
     expect(dom.querySelector('p')?.innerHTML).toBe(text)
     renderer.render(null, document.querySelector('#app'))
