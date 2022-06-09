@@ -1,4 +1,5 @@
 import { IEffectFn,track,trigger } from "./effect"
+import { isArray, isObject } from "../shared"
 // 存副作用的容器
 export const bucket:WeakMap<any,Map<any,Set<IEffectFn>>> = new WeakMap()
 
@@ -70,7 +71,7 @@ export function createReactive(data, isShallow = false, isReadonly = false){
             }
             
             // 如果操作的目标对象是数组，并且key存在于arrayInstrumentations，则返回定义在arrayInstrumentations的值
-            if(Array.isArray(target) && arrayInstrumentations.hasOwnProperty(key)){
+            if(isArray(target) && arrayInstrumentations.hasOwnProperty(key)){
                 return Reflect.get(arrayInstrumentations, key, receiver)
             }
 
@@ -85,7 +86,7 @@ export function createReactive(data, isShallow = false, isReadonly = false){
             }
 
             // 当访问的属性是对象时，再把属性对象代理成响应式对象，就是懒代理
-            if(typeof res === 'object' && res !== null){
+            if(isObject(res)){
                 return isReadonly ? readonly(res) : reactive(res)
             }
             // 返回属性值
@@ -101,7 +102,7 @@ export function createReactive(data, isShallow = false, isReadonly = false){
             }
             // 获取旧值
             const oldVal = target[key]
-            const type = Array.isArray(target) 
+            const type = isArray(target) 
                 ? Number(key) >= target.length ? 'ADD' : 'SET'
                 : Object.prototype.hasOwnProperty.call(target,key) ? 'SET' : 'ADD'
             const res = Reflect.set(target,key,newValue,receiver)
@@ -122,7 +123,7 @@ export function createReactive(data, isShallow = false, isReadonly = false){
         },
         // 对象的for in 操作符
         ownKeys(target){
-            track(target, Array.isArray(target) ? 'length': ITERATE_KEY)
+            track(target, isArray(target) ? 'length': ITERATE_KEY)
             return Reflect.ownKeys(target)
         },
         // 对象的delete操作

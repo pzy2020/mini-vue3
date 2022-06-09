@@ -1,5 +1,5 @@
 import { ShapeFlags } from "../shared/ShapeFlags";
-import { isString,isObject,isArray } from "../shared";
+import { isString,isArray } from "../shared";
 
 export function isVNode(value){
     return !!(value && value.__v_isVnode)

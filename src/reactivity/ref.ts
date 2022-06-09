@@ -1,5 +1,6 @@
 import { track,trigger } from "./effect";
 import { reactive,toRaw } from "./reactive";
+import { isObject } from "../shared"
 
 class RefImpl {
     private __isRef: Boolean
@@ -33,7 +34,7 @@ export function ref(val){
 }
 
 function convert(val){
-    return typeof val === 'object' && val !== null ? reactive(val) : val
+    return isObject(val) ? reactive(val) : val
 }
 
 export function isRef(val){

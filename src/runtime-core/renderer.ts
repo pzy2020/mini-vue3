@@ -1,3 +1,4 @@
+import { isArray, isString } from "../shared"
 export function createRenderer(options){
     const {
         createElement,
@@ -8,7 +9,7 @@ export function createRenderer(options){
     } = options
 
     function patchChildren(n1, n2, container){
-        if(typeof n2.children === 'string'){
+        if(isString(n2.children)){
             setElementText(container, n2.children)
         }
     }
@@ -38,9 +39,9 @@ export function createRenderer(options){
 
     function mountElement(vnode, container){
         const el = vnode.el = createElement(vnode.type)
-        if(typeof vnode.children === 'string'){
+        if(isString(vnode.children)){
             setElementText(el,vnode.children)
-        }else if(Array.isArray(vnode.children)){
+        }else if(isArray(vnode.children)){
             vnode.children.forEach(child => {
                 patch(null, child, el)
             })
@@ -61,7 +62,7 @@ export function createRenderer(options){
             n1 = null
         }
         const { type } = n2
-        if(typeof type === 'string'){
+        if(isString(type)){
             if(!n1){
                 mountElement(n2, container)
             }else{

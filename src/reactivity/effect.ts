@@ -1,5 +1,5 @@
 import { bucket, ITERATE_KEY, shouldTrack} from "./reactive"
-
+import { isArray } from "../shared"
 export type triggerType = 'SET' | 'ADD' | 'DELETE'
 
 export interface IEffectFn {
@@ -79,7 +79,7 @@ export function trigger(target, key, type?:triggerType, newValue?){
     })
 
     // 处理设置数组length属性,导致删除了部分数组的元素，被删除的元素应该有响应
-    if(key === 'length' && Array.isArray(target)){
+    if(key === 'length' && isArray(target)){
         depsMap.forEach((effects, k) => {
             if(k >= newValue){
                 effects.forEach(fn => {
@@ -92,7 +92,7 @@ export function trigger(target, key, type?:triggerType, newValue?){
     }
 
     // 处理数组新增元素，对数组length的影响
-    if(type === 'ADD' && Array.isArray(target)){
+    if(type === 'ADD' && isArray(target)){
         const lengthEffects = depsMap.get('length')
         lengthEffects && lengthEffects.forEach(effectFn => {
             if(effectFn !== activeEffect){
