@@ -1,6 +1,7 @@
 import { renderer } from '../index'
 import { ref } from '../../reactivity/ref'
 import { effect } from '../../reactivity/effect'
+import { h } from '../../runtime-core/h'
 
 afterEach(()=>{
     let appDom = document.querySelector('#app')
@@ -137,4 +138,34 @@ test("render方法卸载元素", () => {
     renderer.render(null, document.querySelector('#app'))
     expect(dom.querySelector('p')).toBe(null)
     expect(document.querySelector('#app')?.innerHTML).toBe('')
+})
+
+test("给元素添加事件", () => {
+    let dom = document.createElement('div')
+    dom.setAttribute('id', 'app')
+    document.body.append(dom)
+    let clicked = false
+    let vnode = h('button',{
+        onClick: () => clicked = true
+    },'click')
+    renderer.render(vnode, document.querySelector('#app'))
+    let submitDom = document.querySelector('button')
+    expect(clicked).toBeFalsy()
+    submitDom?.click()
+    expect(clicked).toBeTruthy()
+})
+
+test("给元素添加事件", () => {
+    let dom = document.createElement('div')
+    dom.setAttribute('id', 'app')
+    document.body.append(dom)
+    let clickedCount = 0
+    let vnode = h('button',{
+        onClick: [() => clickedCount++,() => clickedCount++]
+    },'click')
+    renderer.render(vnode, document.querySelector('#app'))
+    let submitDom = document.querySelector('button')
+    expect(clickedCount).toBe(0)
+    submitDom?.click()
+    expect(clickedCount).toBe(2)
 })

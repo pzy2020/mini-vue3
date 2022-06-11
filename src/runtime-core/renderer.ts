@@ -1,4 +1,5 @@
 import { isArray, isString } from "../shared"
+import { isSameVNodeType } from "./vnode"
 export function createRenderer(options){
     const {
         createElement,
@@ -8,17 +9,17 @@ export function createRenderer(options){
         patchProp
     } = options
 
-    function patchChildren(n1, n2, container){
+    const patchChildren = function(n1, n2, container){
         if(isString(n2.children)){
             setElementText(container, n2.children)
         }
     }
 
-    function unmount(vnode){
+    const unmount = function(vnode){
         remove(vnode.el)
     }
 
-    function patchElement(n1, n2){
+    const patchElement = function(n1, n2){
         const el = n2.el = n1.el
         const oldProps = n1.props
         const newProps = n2.props
@@ -37,7 +38,7 @@ export function createRenderer(options){
         patchChildren(n1, n2, el)
     }
 
-    function mountElement(vnode, container){
+    const mountElement = function(vnode, container){
         const el = vnode.el = createElement(vnode.type)
         if(isString(vnode.children)){
             setElementText(el,vnode.children)
@@ -55,9 +56,9 @@ export function createRenderer(options){
         insert(el,container)
     }
 
-    function patch(n1, n2, container){
+    const patch = function(n1, n2, container){
         if(n1 === n2) return
-        if(n1 && n1.type !== n2.type){
+        if(n1 && !isSameVNodeType(n1,n2)){
             unmount(n1)
             n1 = null
         }
@@ -73,7 +74,7 @@ export function createRenderer(options){
         
     }
 
-    function render(vnode, container){
+    const render = function(vnode, container){
         console.log(container._vnode,vnode)
         if(vnode){ // 挂载
             patch(container._vnode, vnode, container)
