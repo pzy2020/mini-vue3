@@ -16,12 +16,8 @@ test("挂载渲染普通的简单元素", () => {
     let dom = document.createElement('div')
     dom.setAttribute('id', 'app')
     document.body.append(dom)
-    const vnode = {
-        type: 'p',
-        children: text
-    }
     
-    renderer.render(vnode, document.querySelector('#app'))
+    renderer.render(h('p',text), document.querySelector('#app'))
     expect(dom.querySelector('p')?.innerHTML).toBe(text)
 })
 
@@ -30,15 +26,7 @@ test("挂载渲染嵌套的普通元素", () => {
     let dom = document.createElement('div')
     dom.setAttribute('id', 'app')
     document.body.append(dom)
-    const vnode = {
-        type: 'div',
-        children: [
-            {
-                type: 'p',
-                children: text
-            }
-        ]
-    }
+    const vnode = h('div',h('p',text))
     
     renderer.render(vnode, document.querySelector('#app'))
     expect(dom.querySelector('p')?.innerHTML).toBe(text)
@@ -53,10 +41,7 @@ test("普通的简单元素更新", () => {
     let textVal
     effect(() => {
         textVal = text.value
-        renderer.render({
-            type: 'p',
-            children: text.value
-        }, document.querySelector('#app'))
+        renderer.render(h('p',text.value), document.querySelector('#app'))
     })
     
     expect(dom.querySelector('p')?.innerHTML).toBe(text.value)
@@ -69,14 +54,10 @@ test("正确的设置元素属性:disabled", () => {
     let dom = document.createElement('div')
     dom.setAttribute('id', 'app')
     document.body.append(dom)
-    const vnode = {
-        type: 'button',
-        props:{
-            disabled: '',
-            id: 'submit'
-        },
-        children: 'Submit'
-    }
+    const vnode = h('button',{
+        disabled: '',
+        id: 'submit'
+    },'Submit')
     
     renderer.render(vnode, document.querySelector('#app'))
     let submitDom = document.querySelector('button')
@@ -88,14 +69,10 @@ test("正确的设置元素属性:class", () => {
     let dom = document.createElement('div')
     dom.setAttribute('id', 'app')
     document.body.append(dom)
-    const vnode = {
-        type: 'button',
-        props:{
-            id: 'submit',
-            class: 'error'
-        },
-        children: 'Submit'
-    }
+    const vnode = h('button',{
+        class: 'error',
+        id: 'submit'
+    },'Submit')
     
     renderer.render(vnode, document.querySelector('#app'))
     let submitDom = document.querySelector('button')
@@ -107,15 +84,11 @@ test("正确的设置元素属性:style", () => {
     let dom = document.createElement('div')
     dom.setAttribute('id', 'app')
     document.body.append(dom)
-    const vnode = {
-        type: 'button',
-        props:{
-            id: 'submit',
-            class: 'error',
-            style: {color: 'rgb(0, 0, 0)'}
-        },
-        children: 'Submit'
-    }
+    const vnode = h('button',{
+        class: 'error',
+        id: 'submit',
+        style: {color: 'rgb(0, 0, 0)'}
+    },'Submit')
     
     renderer.render(vnode, document.querySelector('#app'))
     let submitDom:HTMLButtonElement|null = document.querySelector('#submit')
@@ -128,10 +101,7 @@ test("render方法卸载元素", () => {
     let dom = document.createElement('div')
     dom.setAttribute('id', 'app')
     document.body.append(dom)
-    const vnode = {
-        type: 'p',
-        children: text
-    }
+    const vnode = h('p',text)
     
     renderer.render(vnode, document.querySelector('#app'))
     expect(dom.querySelector('p')?.innerHTML).toBe(text)

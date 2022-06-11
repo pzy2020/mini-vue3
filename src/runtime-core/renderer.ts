@@ -1,4 +1,5 @@
 import { isArray, isString } from "../shared"
+import { ShapeFlags } from "../shared/ShapeFlags"
 import { isSameVNodeType } from "./vnode"
 export function createRenderer(options){
     const {
@@ -9,9 +10,48 @@ export function createRenderer(options){
         patchProp
     } = options
 
+    const unmountChildren = function(children){
+        for (let index = 0; index < children.length; index++) {
+            unmount(children[index])
+            
+        }
+    }
+
+    const mountChildren = function(children,container){
+        for (let index = 0; index < children.length; index++) {
+            patch(null,children[index],container)
+        }
+    }
+
     const patchChildren = function(n1, n2, container){
-        if(isString(n2.children)){
-            setElementText(container, n2.children)
+        const c1 = n1.children
+        const c2 = n2.children
+        const pervShapeFlags= n1.shapeFlags
+        const shapeFlags = n2.shapeFlags
+        if(shapeFlags & ShapeFlags.TEXT_CHILDREN){
+            if(pervShapeFlags & ShapeFlags.ARRAY_CHILDREN){
+                // 删除所有子节点
+                unmountChildren(c1)
+            }
+            if(c1 !== c2){
+                setElementText(container,c2)
+            }
+        }else { // 现在为数组或空
+            if(pervShapeFlags & ShapeFlags.ARRAY_CHILDREN){
+                if(shapeFlags & ShapeFlags.ARRAY_CHILDREN){
+                    // diff 算法
+                    console.log(c1,c2)
+                }else{
+                    unmountChildren(c1)
+                }
+            }else{
+                if(pervShapeFlags & ShapeFlags.TEXT_CHILDREN){
+                    setElementText(container,'')
+                }
+                if(shapeFlags & ShapeFlags.ARRAY_CHILDREN){
+                    mountChildren(c2, container)
+                }
+            }
         }
     }
 
@@ -19,6 +59,7 @@ export function createRenderer(options){
         remove(vnode.el)
     }
 
+    // 更新属性，更新子元素
     const patchElement = function(n1, n2){
         const el = n2.el = n1.el
         const oldProps = n1.props
@@ -40,20 +81,29 @@ export function createRenderer(options){
 
     const mountElement = function(vnode, container){
         const el = vnode.el = createElement(vnode.type)
-        if(isString(vnode.children)){
-            setElementText(el,vnode.children)
-        }else if(isArray(vnode.children)){
-            vnode.children.forEach(child => {
-                patch(null, child, el)
-            })
+        const { props, shapeFlags, children } = vnode
+        
+        if(shapeFlags & ShapeFlags.TEXT_CHILDREN){
+            setElementText(el,children)
+        }else if(shapeFlags & ShapeFlags.ARRAY_CHILDREN){
+            mountChildren(children,el)
         }
-        if(vnode.props){
-            for (const key in vnode.props) {
-                const nextVal = vnode.props[key]
+        
+        if(props){
+            for (const key in props) {
+                const nextVal = props[key]
                 patchProp(el, key, null, nextVal)
             }
         }
         insert(el,container)
+    }
+
+    const processElement = function(n1, n2, container){
+        if(!n1){
+            mountElement(n2, container)
+        }else{
+            patchElement(n1, n2)
+        }
     }
 
     const patch = function(n1, n2, container){
@@ -62,20 +112,18 @@ export function createRenderer(options){
             unmount(n1)
             n1 = null
         }
-        const { type } = n2
-        if(isString(type)){
-            if(!n1){
-                mountElement(n2, container)
-            }else{
-                console.log(n1,n2)
-                patchElement(n1, n2)
-            }
+        const { type, shapeFlags } = n2
+        switch (type) {
+            default:
+                if(shapeFlags & ShapeFlags.ELEMENT){
+                    processElement(n1, n2, container)
+                }
+                break;
         }
         
     }
 
     const render = function(vnode, container){
-        console.log(container._vnode,vnode)
         if(vnode){ // 挂载
             patch(container._vnode, vnode, container)
         }else { // 卸载
