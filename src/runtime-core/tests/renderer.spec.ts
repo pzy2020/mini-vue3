@@ -3,6 +3,7 @@ import { patchProp, renderer } from "../../runtime-dom"
 import { nodeOps } from "../../runtime-dom/nodeOps"
 import { h } from "../h"
 import { createRenderer } from "../renderer"
+import { Fragment } from "../vnode"
 
 
 let dom
@@ -212,3 +213,9 @@ test('更新子节点,diff',() => {
     expect(dom.querySelectorAll('span')?.length).toBe(5)
 })
 
+test('Fragment',()=>{
+    renderer.render(h(Fragment,[h('span','123'),h('span','456')]), document.querySelector('#app'))
+    expect(document.querySelector('#app')?.innerHTML).toBe('<span>123</span><span>456</span>')
+    renderer.render(h(Fragment,[h('span','789'),h('span','123')]), document.querySelector('#app'))
+    expect(document.querySelector('#app')?.innerHTML).toBe('<span>789</span><span>123</span>')
+})

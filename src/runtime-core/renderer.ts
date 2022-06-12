@@ -1,6 +1,6 @@
 import { isArray, isString } from "../shared"
 import { ShapeFlags } from "../shared/ShapeFlags"
-import { isSameVNodeType, normalizeVNode, Text } from "./vnode"
+import { Fragment, isSameVNodeType, normalizeVNode, Text } from "./vnode"
 export function createRenderer(options){
     const {
         createElement,
@@ -227,6 +227,15 @@ export function createRenderer(options){
             }
         }
     }
+    const processFragment = function(n1, n2, container){
+        if (n1 == null) {
+            if(isArray(n2.children)){
+                mountChildren(n2.children,container)
+            }
+        }else{
+            patchChildren(n1,n2,container)
+        }
+    }
 
     const patch = function(n1, n2, container, anchor = null){
         if(n1 === n2) return
@@ -239,6 +248,8 @@ export function createRenderer(options){
             case Text:
                 processText(n1, n2, container)
                 break;
+            case Fragment:
+                processFragment(n1, n2, container)
             default:
                 if(shapeFlags & ShapeFlags.ELEMENT){
                     processElement(n1, n2, container, anchor)

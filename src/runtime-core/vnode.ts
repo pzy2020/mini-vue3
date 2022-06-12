@@ -2,6 +2,7 @@ import { ShapeFlags } from "../shared/ShapeFlags";
 import { isString,isArray } from "../shared";
 
 export const Text = Symbol('Text')
+export const Fragment = Symbol('Fragment')
 
 export function isVNode(value){
     return !!(value && value.__v_isVnode)
