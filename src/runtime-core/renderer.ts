@@ -281,15 +281,19 @@ function getSequence(arr: number[]): number[] {
     const len = arr.length
     for (i = 0; i < len; i++) {
       const arrI = arr[i]
+      // 在vue3中0是没意义的，0代表当前节点不存在于旧vnode中，应该挂载mount
       if (arrI !== 0) {
         j = result[result.length - 1]
         if (arr[j] < arrI) {
+            // 记录当前值的上一个值的索引
           p[i] = j
+          // 下一个大于当前值，正常添加
           result.push(i)
           continue
         }
         u = 0
         v = result.length - 1
+        // 二分法查找，下一个小的替换之前存在result中大的
         while (u < v) {
           c = (u + v) >> 1
           if (arr[result[c]] < arrI) {
@@ -300,14 +304,17 @@ function getSequence(arr: number[]): number[] {
         }
         if (arrI < arr[result[u]]) {
           if (u > 0) {
+              // 记录当前值替换result中大的值的上一个值的索引
             p[i] = result[u - 1]
           }
+          // 贪心 ， 总把更有潜力的（小的值替换已经存在result中大的值）
           result[u] = i
         }
       }
     }
     u = result.length
     v = result[u - 1]
+    // 根据最后的一个数，因为这个数是最大的，所以可以从后往前推出整个最长递增子序列，根据P
     while (u-- > 0) {
       result[u] = v
       v = p[v]
