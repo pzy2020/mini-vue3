@@ -3,6 +3,13 @@ import { ref } from '../../reactivity/ref'
 import { effect } from '../../reactivity/effect'
 import { h } from '../../runtime-core/h'
 
+let dom
+beforeEach(()=>{
+    dom = document.createElement('div')
+    dom.setAttribute('id', 'app')
+    document.body.append(dom)
+})
+
 afterEach(()=>{
     let appDom = document.querySelector('#app')
     if(appDom){
@@ -13,9 +20,7 @@ afterEach(()=>{
 
 test("挂载渲染普通的简单元素", () => {
     let text = 'hello vue3'
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     
     renderer.render(h('p',text), document.querySelector('#app'))
     expect(dom.querySelector('p')?.innerHTML).toBe(text)
@@ -23,9 +28,7 @@ test("挂载渲染普通的简单元素", () => {
 
 test("挂载渲染嵌套的普通元素", () => {
     let text = 'hello vue3'
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     const vnode = h('div',h('p',text))
     
     renderer.render(vnode, document.querySelector('#app'))
@@ -34,9 +37,7 @@ test("挂载渲染嵌套的普通元素", () => {
 
 test("普通的简单元素更新", () => {
     let text = ref('hello vue3')
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     
     let textVal
     effect(() => {
@@ -51,9 +52,7 @@ test("普通的简单元素更新", () => {
 })
 
 test("正确的设置元素属性:disabled", () => {
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     const vnode = h('button',{
         disabled: '',
         id: 'submit'
@@ -66,9 +65,7 @@ test("正确的设置元素属性:disabled", () => {
 })
 
 test("正确的设置元素属性:class", () => {
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     const vnode = h('button',{
         class: 'error',
         id: 'submit'
@@ -81,9 +78,7 @@ test("正确的设置元素属性:class", () => {
 })
 
 test("正确的设置元素属性:style", () => {
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     const vnode = h('button',{
         class: 'error',
         id: 'submit',
@@ -98,9 +93,7 @@ test("正确的设置元素属性:style", () => {
 
 test("render方法卸载元素", () => {
     let text = 'hello vue3'
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     const vnode = h('p',text)
     
     renderer.render(vnode, document.querySelector('#app'))
@@ -111,9 +104,7 @@ test("render方法卸载元素", () => {
 })
 
 test("给元素添加事件", () => {
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     let clicked = false
     let vnode = h('button',{
         onClick: () => clicked = true
@@ -126,9 +117,7 @@ test("给元素添加事件", () => {
 })
 
 test("给元素添加事件", () => {
-    let dom = document.createElement('div')
-    dom.setAttribute('id', 'app')
-    document.body.append(dom)
+    
     let clickedCount = 0
     let vnode = h('button',{
         onClick: [() => clickedCount++,() => clickedCount++]

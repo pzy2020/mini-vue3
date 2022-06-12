@@ -2,7 +2,7 @@ import { createRenderer } from '../runtime-core'
 import { patchEvent } from './modules/events'
 import { patchStyle } from './modules/style'
 import { nodeOps } from './nodeOps'
-function patchProp(el, key, preVal, nextVal) {
+export function patchProp(el, key, preVal, nextVal) {
     if(key === 'style'){
         patchStyle(el, preVal, nextVal)
     }else if(key === 'class'){ 

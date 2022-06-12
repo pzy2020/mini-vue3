@@ -1,6 +1,8 @@
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { isString,isArray } from "../shared";
 
+export const Text = Symbol('Text')
+
 export function isVNode(value){
     return !!(value && value.__v_isVnode)
 }
@@ -32,4 +34,11 @@ export function createVNode(type, props?, children?){
         el: null
     }
     return vnode
+}
+
+export function normalizeVNode(child){
+    if(isString(child)){
+        return createVNode(Text, null, child)
+    }
+    return child
 }
