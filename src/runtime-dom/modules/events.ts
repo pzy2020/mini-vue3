@@ -8,6 +8,8 @@ export function patchEvent(el, key, nextVal){
     if(nextVal){
         if(!invoker){
             invoker = el._vei[key] = (e) => {
+                console.log('patchEvent:',invoker,e.timeStamp,invoker.attached)
+                if(e.timeStamp < invoker.attached) return
                 if(isArray(invoker.value)){
                     invoker.value.forEach(fn => {
                         fn(e)
@@ -17,6 +19,7 @@ export function patchEvent(el, key, nextVal){
                 }
             }
             invoker.value = nextVal
+            invoker.attached = Date.now()
             el.addEventListener(name, invoker)
         }else{
             invoker.value = nextVal

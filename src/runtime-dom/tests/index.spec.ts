@@ -128,3 +128,26 @@ test("给元素添加事件", () => {
     submitDom?.click()
     expect(clickedCount).toBe(2)
 })
+
+test("事件冒泡与更新时机", () => {
+    let show = ref(false)
+    
+    
+    let textVal
+    effect(() => {
+        renderer.render(h('div',show.value ? {onclick: () => {
+            textVal = 'clicked'
+        }}: {}, [h("button",{onclick: () => {
+            show.value = true
+        }},'click')]), document.querySelector('#app'))
+
+    })
+    let submitDom = dom.querySelector('button')
+    submitDom && submitDom.click()
+    expect(show.value).toBe(true)
+    expect(textVal).toBeUndefined()
+    let divDom = dom.querySelector('div')
+    divDom && divDom.click()
+    expect(textVal).toBe('clicked')
+    
+})
