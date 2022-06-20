@@ -1,5 +1,5 @@
 import { ShapeFlags } from "../shared/ShapeFlags";
-import { isString,isArray } from "../shared";
+import { isString,isArray, isObject } from "../shared";
 
 export const Text = Symbol('Text')
 export const Fragment = Symbol('Fragment')
@@ -13,7 +13,7 @@ export function isSameVNodeType(n1,n2){
 }
 
 export function createVNode(type, props?, children?){
-    let shapeFlags = isString(type) ? ShapeFlags.ELEMENT : 0
+    let shapeFlags = isString(type) ? ShapeFlags.ELEMENT : isObject(type) ? ShapeFlags.STATEFUL_COMPONENT : 0
     if(children){
         if(isString(children)){
             shapeFlags |= ShapeFlags.TEXT_CHILDREN

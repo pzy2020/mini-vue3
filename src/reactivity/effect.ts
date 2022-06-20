@@ -11,7 +11,7 @@ export interface IEffectOptions{
     scheduler?: (fn:Function) => void,
     lazy?: boolean
 }
-export let activeEffect:IEffectFn | undefined
+export let activeEffect:IEffectFn | undefined | any
 export let effectStack:IEffectFn[] = []
 export function effect(fn: Function, options?:IEffectOptions){
     try {
@@ -46,6 +46,32 @@ export function clear(effectFn:IEffectFn){
         effectFn.deps.length = 0
     }
 }
+
+// export class ReactiveEffect {
+//     public active = true;
+//     public parent = null;
+//     constructor(public fn){
+//     }
+
+//     run(){
+//         if(!this.active){ // 非激活状态，只执行fn，不做依赖收集
+//             this.fn()
+//         }
+//         try{
+//             this.parent = activeEffect
+//             activeEffect = this
+//             return this.fn()
+//         }finally{
+//             activeEffect = this.parent
+//             this.parent = null
+//         }
+
+//     }
+// }
+// export function effect(fn){
+//     const _effect = new ReactiveEffect(fn)
+//     _effect.run()
+// }
 
 export function track(target, key){
     // 如果不存在正在执行的副作用函数或者shouldTrack标志为false禁止追踪，则直接返回

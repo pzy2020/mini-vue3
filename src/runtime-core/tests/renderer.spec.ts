@@ -165,6 +165,25 @@ describe('patchKeyedChildren',() => {
     })
 })
 
+describe('组件', () => {
+    test('组件初始化渲染', () => {
+        const vnode = h({
+            name: 'MyComponent',
+            data(){
+                return {
+                    name: 'joy',
+                    age: 18
+                }
+            },
+            render(){
+                return h('p',`${this.name}已经${this.age}岁了`)
+            }
+        })
+        renderer.render(vnode, document.querySelector('#app'))
+        expect(dom.querySelector('p')?.innerHTML).toBe('joy已经18岁了')
+    })
+})
+
 test('更新子节点,文本节点更新为文本节点', () => {
     let text = ref('hello vue3')
     
