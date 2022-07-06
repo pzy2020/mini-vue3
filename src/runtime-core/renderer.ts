@@ -2,6 +2,7 @@ import { effect, IEffectFn } from "../reactivity/effect"
 import { isArray } from "../shared"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
+import { updateProps } from "./componentProps"
 import { Fragment, isSameVNodeType, normalizeVNode, Text } from "./vnode"
 export function createRenderer(options){
     const {
@@ -274,11 +275,19 @@ export function createRenderer(options){
         instance.update = (effect_ && effect_.bind(effect_)) as IEffectFn
     }
 
+    const updateComponent = function(n1,n2) {
+        const instance = n2.component = n1.component
+        const { props: prevProps } = n1
+        const { props: nextProps } = n2
+
+        updateProps(instance,prevProps,nextProps)
+    }
+
     const processComponent = function(n1, n2, container, anchor){
         if(n1 == null){
             mountComponent(n2, container,anchor)
         }else{
-            console.log('gengxin')
+            updateComponent(n1,n2)
         }
     }
 

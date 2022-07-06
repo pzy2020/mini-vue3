@@ -32,7 +32,9 @@ export function createVNode(type, props?, children?){
         shapeFlags,
         key: props?.key,
         // 虚拟节点对应的真实节点，用于后续的diff算法
-        el: null
+        el: null,
+        // 组件实例
+        component: null
     }
     return vnode
 }

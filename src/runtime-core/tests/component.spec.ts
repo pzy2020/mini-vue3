@@ -1,5 +1,6 @@
 import { renderer } from "../../runtime-dom"
 import { h } from "../h"
+import { Fragment } from "../vnode"
 
 let dom
 afterEach(()=>{
@@ -87,5 +88,36 @@ test("组件$attrs", function(){
     renderer.render(h(myComponent,{address: '白云区', city: '广州市'}), dom)
     const div = dom.querySelector('div')
     expect(div?.innerHTML).toBe("住址广州市 白云区")
+
+})
+
+test("组件props导致的更新", function(){
+    const VueComponent = {
+        data(){
+            return {
+                flag: true
+            }
+        },
+        render(){
+            return h(Fragment,[
+                h('button',{onClick: () => (this as any).flag = !(this as any).flag}, '切换'),
+                h(myComponent,{address: (this as any).flag ? '广州' : '深圳'})])
+        }
+    }
+    const myComponent = {
+        props:{
+            address: String,
+        },
+        render() {
+            return h('div',`住址${(this as any).address}`)
+        },
+    }
+    renderer.render(h(VueComponent), dom)
+    console.log('dom:',dom.innerHTML)
+    const div = dom.querySelector('div')
+    expect(div?.innerHTML).toBe("住址广州")
+    const button = dom.querySelector('button')
+    button?.click()
+    expect(div?.innerHTML).toBe("住址深圳")
 
 })
