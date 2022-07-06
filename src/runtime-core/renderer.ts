@@ -1,9 +1,7 @@
 import { effect, IEffectFn } from "../reactivity/effect"
-import { reactive } from "../reactivity/reactive"
-import { hasOwn, isArray, isString } from "../shared"
+import { isArray } from "../shared"
 import { ShapeFlags } from "../shared/ShapeFlags"
-import { initProps } from "./componentProps"
-import { queueJob } from "./scheduler"
+import { createComponentInstance, setupComponent } from "./component"
 import { Fragment, isSameVNodeType, normalizeVNode, Text } from "./vnode"
 export function createRenderer(options){
     const {
@@ -241,55 +239,16 @@ export function createRenderer(options){
         }
     }
 
-    const publicPropertyMap = {
-        $attrs: (i) => i.attrs
-    }
-
     const mountComponent = function(vnode, container, anchor) {
-        const { data=()=>({}), render, props: propsOptions = {} } = vnode.type
-        const state = reactive(data())
-        let instance:{update: IEffectFn | null} & any = {
-            state,
-            vnode,
-            subTree: null,
-            isMounted: false,
-            update: null,
-            propsOptions,
-            props: {},
-            attrs: {},
-            proxy: null
-        }
-
-        // 初始化props\attrs
-        initProps(instance, vnode.props)
-
-        instance.proxy = new Proxy(instance, {
-            get(target, key){
-                const { state, props } = target
-                if(state && hasOwn(state, key)){
-                    return state[key]
-                }else if(props && hasOwn(props,key)){
-                    return props[key]
-                }
-                let getter = publicPropertyMap[key]
-                if(getter){
-                    return getter(target)
-                }
-                
-            },
-            set(target, key, value){
-                const { state, props } = target
-                if(state && hasOwn(state, key)){
-                    state[key] = value
-                // 用户操作的是代理对象，这里被屏蔽了，但是我们可以通过instance.props 拿到真实的props ，可以更改
-                }else if(props && hasOwn(props,key)){
-                    console.error(`组件内的props ${String(key)}不能被赋值`)
-                    return false
-                }
-                return true
-            }
-        })
-
+        // 创建组件实例
+        let instance = vnode.component = createComponentInstance(vnode)
+        // 给组件实例赋值
+        setupComponent(instance)
+        // 创建一个effect
+        setupRenderEffect(instance, container, anchor)
+    }
+    const setupRenderEffect = function(instance, container, anchor) {
+        const { render } = instance
         const componentUpdateFn = () => {
             if(!instance.isMounted){ // 初始化
                 const subTree = render.call(instance.proxy)
@@ -313,7 +272,6 @@ export function createRenderer(options){
         // })
         const effect_ = effect(componentUpdateFn)
         instance.update = (effect_ && effect_.bind(effect_)) as IEffectFn
-        
     }
 
     const processComponent = function(n1, n2, container, anchor){
