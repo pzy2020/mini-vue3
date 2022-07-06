@@ -1,7 +1,9 @@
 import { effect, IEffectFn } from "../reactivity/effect"
 import { reactive } from "../reactivity/reactive"
-import { isArray, isString } from "../shared"
+import { hasOwn, isArray, isString } from "../shared"
 import { ShapeFlags } from "../shared/ShapeFlags"
+import { initProps } from "./componentProps"
+import { queueJob } from "./scheduler"
 import { Fragment, isSameVNodeType, normalizeVNode, Text } from "./vnode"
 export function createRenderer(options){
     const {
@@ -239,24 +241,63 @@ export function createRenderer(options){
         }
     }
 
+    const publicPropertyMap = {
+        $attrs: (i) => i.attrs
+    }
+
     const mountComponent = function(vnode, container, anchor) {
-        const { data=()=>{}, render } = vnode.type
+        const { data=()=>({}), render, props: propsOptions = {} } = vnode.type
         const state = reactive(data())
         let instance:{update: IEffectFn | null} & any = {
             state,
             vnode,
             subTree: null,
             isMounted: false,
-            update: null
+            update: null,
+            propsOptions,
+            props: {},
+            attrs: {},
+            proxy: null
         }
+
+        // 初始化props\attrs
+        initProps(instance, vnode.props)
+
+        instance.proxy = new Proxy(instance, {
+            get(target, key){
+                const { state, props } = target
+                if(state && hasOwn(state, key)){
+                    return state[key]
+                }else if(props && hasOwn(props,key)){
+                    return props[key]
+                }
+                let getter = publicPropertyMap[key]
+                if(getter){
+                    return getter(target)
+                }
+                
+            },
+            set(target, key, value){
+                const { state, props } = target
+                if(state && hasOwn(state, key)){
+                    state[key] = value
+                // 用户操作的是代理对象，这里被屏蔽了，但是我们可以通过instance.props 拿到真实的props ，可以更改
+                }else if(props && hasOwn(props,key)){
+                    console.error(`组件内的props ${String(key)}不能被赋值`)
+                    return false
+                }
+                return true
+            }
+        })
+
         const componentUpdateFn = () => {
             if(!instance.isMounted){ // 初始化
-                const subTree = render.call(state)
+                const subTree = render.call(instance.proxy)
                 patch(null,subTree,container,anchor)
                 instance.subTree = subTree
                 instance.isMounted = true
             }else { // 组件内部更新
-                const subTree = render.call(state)
+                const subTree = render.call(instance.proxy)
                 patch(instance.subTree,subTree,container,anchor)
                 instance.subTree = subTree
             }
@@ -265,6 +306,11 @@ export function createRenderer(options){
         // const effect_ = effect(componentUpdateFn,{lazy: true})
         // let update = instance.update = (effect_ && effect_.bind(effect_)) as IEffectFn
         // update()
+        // const effect_ = effect(componentUpdateFn,{
+        //     scheduler(fn) {
+        //         queueJob(instance.update)
+        //     },
+        // })
         const effect_ = effect(componentUpdateFn)
         instance.update = (effect_ && effect_.bind(effect_)) as IEffectFn
         
