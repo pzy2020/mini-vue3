@@ -14,7 +14,8 @@ export function createComponentInstance(vnode) {
         props: {},
         attrs: {},
         proxy: null,
-        render: null
+        render: null,
+        next: null
     }
 
     return instance

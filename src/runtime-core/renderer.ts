@@ -2,7 +2,7 @@ import { effect, IEffectFn } from "../reactivity/effect"
 import { isArray } from "../shared"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
-import { updateProps } from "./componentProps"
+import { updateProps, hasPropsChanged } from "./componentProps"
 import { Fragment, isSameVNodeType, normalizeVNode, Text } from "./vnode"
 export function createRenderer(options){
     const {
@@ -248,6 +248,11 @@ export function createRenderer(options){
         // 创建一个effect
         setupRenderEffect(instance, container, anchor)
     }
+    const updateComponentPreRender = function(instance,next){
+        instance.next = null
+        instance.vnode = next
+        updateProps(instance.props, next.props)
+    }
     const setupRenderEffect = function(instance, container, anchor) {
         const { render } = instance
         const componentUpdateFn = () => {
@@ -257,6 +262,11 @@ export function createRenderer(options){
                 instance.subTree = subTree
                 instance.isMounted = true
             }else { // 组件内部更新
+                let { next } = instance
+                if(next){
+                    updateComponentPreRender(instance,next)
+                }
+
                 const subTree = render.call(instance.proxy)
                 patch(instance.subTree,subTree,container,anchor)
                 instance.subTree = subTree
@@ -275,12 +285,28 @@ export function createRenderer(options){
         instance.update = (effect_ && effect_.bind(effect_)) as IEffectFn
     }
 
+    const shouldUpdateComponent = function(n1,n2){
+        const { props: prevProps, children: prevChildren } = n1
+        const { props: nextProps, children: nextChildren } = n2
+        if(prevProps === nextProps){
+            return false
+        }
+        if(prevChildren || nextChildren){
+            return false
+        }
+        return hasPropsChanged(prevProps,nextProps)
+    }
+
     const updateComponent = function(n1,n2) {
         const instance = n2.component = n1.component
-        const { props: prevProps } = n1
-        const { props: nextProps } = n2
+        
+        // 需要更新旧强制调用update
+        if(shouldUpdateComponent(n1,n2)){
+            instance.next = n2
+            instance.update()
+        }
 
-        updateProps(instance,prevProps,nextProps)
+        // updateProps(instance,prevProps,nextProps)
     }
 
     const processComponent = function(n1, n2, container, anchor){

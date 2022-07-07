@@ -19,7 +19,7 @@ export function initProps(instance, rawProps){
     instance.props = shallowReactive(props)
     instance.attrs = attrs
 }
-const hasPropsChanged = (prevProps = {},nextProps = {}) => {
+export const hasPropsChanged = (prevProps = {},nextProps = {}) => {
     const nextKeys = Object.keys(nextProps)
     if(Object.keys(prevProps).length !== nextKeys.length){
         return true
@@ -32,16 +32,14 @@ const hasPropsChanged = (prevProps = {},nextProps = {}) => {
     }
     return false
 }
-export function updateProps(instance,prevProps,nextProps){
+export function updateProps(prevProps,nextProps){
     // 属性有无变化，个数变化，值变化
-    if(hasPropsChanged(prevProps,nextProps)){
-        for (const key in nextProps) {
-            instance.props[key] = nextProps[key]
-        }
-        for (const key in instance.props) {
-            if(!hasOwn(nextProps,key)){
-                delete instance.props[key]
-            }
+    for (const key in nextProps) {
+        prevProps[key] = nextProps[key]
+    }
+    for (const key in prevProps) {
+        if(!hasOwn(nextProps,key)){
+            delete prevProps[key]
         }
     }
 }
