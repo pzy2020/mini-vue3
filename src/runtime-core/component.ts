@@ -1,6 +1,7 @@
 import { IEffectFn } from "../reactivity/effect"
 import { reactive } from "../reactivity/reactive"
-import { hasOwn, isFunction } from "../shared"
+import { proxyRefs } from "../reactivity/ref"
+import { hasOwn, isFunction, isObject } from "../shared"
 import { initProps } from "./componentProps"
 
 export function createComponentInstance(vnode) {
@@ -15,7 +16,8 @@ export function createComponentInstance(vnode) {
         attrs: {},
         proxy: null,
         render: null,
-        next: null
+        next: null,
+        setupState: {}
     }
 
     return instance
@@ -26,9 +28,11 @@ const publicPropertyMap = {
 }
 const publicInstanceProxy = {
     get(target, key){
-        const { data, props } = target
+        const { data, props, setupState } = target
         if(data && hasOwn(data, key)){
             return data[key]
+        }else if(setupState && hasOwn(setupState, key)){
+            return setupState[key]
         }else if(props && hasOwn(props,key)){
             return props[key]
         }
@@ -39,10 +43,12 @@ const publicInstanceProxy = {
         
     },
     set(target, key, value){
-        const { data, props } = target
+        const { data, props, setupState } = target
         if(data && hasOwn(data, key)){
             data[key] = value
         // 用户操作的是代理对象，这里被屏蔽了，但是我们可以通过instance.props 拿到真实的props ，可以更改
+        }else if(setupState && hasOwn(setupState,key)){
+            setupState[key] = value
         }else if(props && hasOwn(props,key)){
             console.error(`组件内的props ${String(key)}不能被赋值`)
             return false
@@ -61,5 +67,19 @@ export function setupComponent(instance) {
         }
         instance.data = reactive(data.call(instance.proxy))
     }
-    instance.render = type.render
+
+    let setup = type.setup
+    if(setup){
+        const setupContext = {}
+        const setupResult = setup(instance.props, setupContext)
+        if(isFunction(setupResult)){
+            instance.render = setupResult
+        }else if(isObject(setupResult)) {
+            // 脱ref ，不需要.value进行访问
+            instance.setupState = proxyRefs(setupResult)
+        }
+    }
+    if(!instance.render){
+        instance.render = type.render
+    }
 }

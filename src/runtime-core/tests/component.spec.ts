@@ -1,3 +1,4 @@
+import { ref } from "../../reactivity/ref"
 import { renderer } from "../../runtime-dom"
 import { h } from "../h"
 import { Fragment } from "../vnode"
@@ -113,11 +114,53 @@ test("组件props导致的更新", function(){
         },
     }
     renderer.render(h(VueComponent), dom)
-    console.log('dom:',dom.innerHTML)
     const div = dom.querySelector('div')
     expect(div?.innerHTML).toBe("住址广州")
     const button = dom.querySelector('button')
     button?.click()
     expect(div?.innerHTML).toBe("住址深圳")
 
+})
+
+test("setup函数", () => {
+    const VueComponent = {
+        props:{
+            address: String,
+        },
+        setup(props){
+            const name = ref('joy')
+            const age = ref(18)
+            return {
+                name,
+                age,
+                address: props.address + '白云区'
+            }
+        },
+        render() {
+            return h('div',`姓名${(this as any).name} 年龄${(this as any).age} 住址${(this as any).address}`)
+        },
+    }
+
+    renderer.render(h(VueComponent, {address: '广州'}), dom)
+    const div = dom.querySelector('div')
+    expect(div?.innerHTML).toBe("姓名joy 年龄18 住址广州白云区")
+})
+
+test("setup函数返回render函数", () => {
+    const VueComponent = {
+        props:{
+            address: String,
+        },
+        setup(props){
+            const name = ref('joy')
+            const age = ref(18)
+            return () => {
+                return h('div',`姓名${name.value} 年龄${age.value} 住址${props.address}`)
+            }
+        },
+    }
+
+    renderer.render(h(VueComponent, {address: '广州'}), dom)
+    const div = dom.querySelector('div')
+    expect(div?.innerHTML).toBe("姓名joy 年龄18 住址广州")
 })
