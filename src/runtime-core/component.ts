@@ -5,6 +5,10 @@ import { hasOwn, isFunction, isObject } from "../shared"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { initProps } from "./componentProps"
 
+export let currentInstance = null
+export const setCurrentInstance = (instance) => currentInstance = instance
+export const getCurrentInstance = () => currentInstance
+
 export function createComponentInstance(vnode) {
     const emit =  (event, ...args) => {
         const eventName = `on${event[0].toUpperCase() + event.slice(1)}`
@@ -104,7 +108,10 @@ export function setupComponent(instance) {
             slots: instance.slots,
             attrs: instance.attrs
         }
+        // 执行setup前 设置当前的组件实例instance
+        setCurrentInstance(instance)
         const setupResult = setup(instance.props, setupContext)
+        setCurrentInstance(null)
         if(isFunction(setupResult)){
             instance.render = setupResult
         }else if(isObject(setupResult)) {

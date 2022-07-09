@@ -1,5 +1,5 @@
 import { effect, IEffectFn } from "../reactivity/effect"
-import { isArray } from "../shared"
+import { invokeArrayFns, isArray } from "../shared"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
 import { updateProps, hasPropsChanged } from "./componentProps"
@@ -257,18 +257,34 @@ export function createRenderer(options){
         const { render } = instance
         const componentUpdateFn = () => {
             if(!instance.isMounted){ // 初始化
-                const subTree = render.call(instance.proxy)
-                patch(null,subTree,container,anchor)
-                instance.subTree = subTree
-                instance.isMounted = true
-            }else { // 组件内部更新
-                let { next } = instance
-                if(next){
-                    updateComponentPreRender(instance,next)
+
+                let { bm,m } = instance
+                if(bm){
+                    invokeArrayFns(bm)
                 }
 
                 const subTree = render.call(instance.proxy)
+                patch(null,subTree,container,anchor)
+                
+                if(m){
+                    invokeArrayFns(m)
+                }
+
+                instance.subTree = subTree
+                instance.isMounted = true
+            }else { // 组件内部更新
+                let { next,bu,u } = instance
+                if(next){
+                    updateComponentPreRender(instance,next)
+                }
+                if(bu){
+                    invokeArrayFns(bu)
+                }
+                const subTree = render.call(instance.proxy)
                 patch(instance.subTree,subTree,container,anchor)
+                if(u){
+                    invokeArrayFns(u)
+                }
                 instance.subTree = subTree
             }
         }

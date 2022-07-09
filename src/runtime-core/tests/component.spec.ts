@@ -1,5 +1,6 @@
 import { ref } from "../../reactivity/ref"
 import { renderer } from "../../runtime-dom"
+import { onBeforeMount, onBeforeUpdate, onMounted, onUpdated } from "../apiLifecycle"
 import { h } from "../h"
 import { Fragment } from "../vnode"
 
@@ -250,4 +251,46 @@ test("组件插槽", () => {
     expect(h1?.innerHTML).toBe("header")
     const h2 = dom.querySelector('h2')
     expect(h2?.innerHTML).toBe("footer")
+})
+
+test("组件生命周期", () => {
+    let beforeMountMsg = ''
+    let mountedMsg = ''
+    let beforeUpdateMsg = ''
+    let updatedMsg = ''
+    const myComponent = {
+        setup(){
+            const name = ref('joy')
+            const age = ref(18)
+            onBeforeMount(() => {
+                beforeMountMsg = 'onBeforeMount'
+            })
+            onMounted(() => {
+                mountedMsg = 'onMounted'
+            })
+            onBeforeUpdate(() => {
+                beforeUpdateMsg = 'onBeforeUpdate'
+            })
+            onUpdated(() => {
+                updatedMsg = 'onUpdated'
+            })
+
+            return {
+                name,
+                age
+            }
+        },
+        render() {
+            return h('div',{'onClick': () => (this as any).age ++},`${(this as any).name} 今年 ${(this as any).age}岁了`)
+        },
+    }
+    renderer.render(h(myComponent), dom)
+    const div = dom.querySelector('div')
+    expect(beforeMountMsg).toBe('onBeforeMount')
+    expect(div?.innerHTML).toBe("joy 今年 18岁了")
+    expect(mountedMsg).toBe('onMounted')
+    div?.click()
+    expect(div?.innerHTML).toBe("joy 今年 19岁了")
+    expect(beforeUpdateMsg).toBe('onBeforeUpdate')
+    expect(updatedMsg).toBe('onUpdated')
 })
