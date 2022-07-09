@@ -188,51 +188,45 @@ test("组件的事件1", () => {
 
 })
 
-// test("组件的事件2", () => {
-//     const VueComponent = {
-//         props: {
-//             age: Number
-//         },
-//         setup(props,{emit}){
-//             const name = ref('joy')
-//             return {
-//                 name,
-//                 age: props.age,
-//             }
-//         },
-//         render() {
-//             return h(Fragment,[
-//                 h('div',`姓名${(this as any).name} 年龄${(this as any).age}`),
-//                 h('button',{onClick: () => (this as any).$emit('change', (this as any).age)}, '年纪增加'),
-//             ])
-//         },
-//     }
+test("组件的事件2", () => {
+    const VueComponent = {
+        props: {
+            age: Number
+        },
+        setup(props,{emit}){
+            const name = ref('joy')
+            return {
+                name,
+            }
+        },
+        render() {
+            return h(Fragment,[
+                h('div',`姓名${(this as any).name} 年龄${(this as any).age}`),
+                h('button',{onClick: () => (this as any).$emit('change', (this as any).age)}, '年纪增加'),
+            ])
+        },
+    }
 
-//     const MyComponent = {
-//         // setup(props){
-//         //     const age = ref(18)
-//         //     return {
-//         //         age
-//         //     }
-//         // },
-//         data(){
-//             return {
-//                 age: 18
-//             }
-//         },
-//         render() {
-//             return h(VueComponent, {age: (this as any).age,onChange: (age) => {console.log(age,(this as any).age); (this as any).age ++;console.log(age,(this as any).age);}})
-//         }
-//     }
+    const MyComponent = {
+        setup(props){
+            const age = ref(18)
+            return {
+                age
+            }
+        },
+        render() {
+            return h(VueComponent, {age: (this as any).age,'onChange': (age) => { (this as any).age ++;}})
+        }
+    }
 
-//     renderer.render(h(MyComponent), dom)
-//     const div = dom.querySelector('div')
-//     expect(div?.innerHTML).toBe("姓名joy 年龄18")
-//     const button = dom.querySelector('button')
-//     button?.click()
-//     expect(div?.innerHTML).toBe("姓名joy 年龄19")
+    renderer.render(h(MyComponent), dom)
+    const div = dom.querySelector('div')
+    expect(div?.innerHTML).toBe("姓名joy 年龄18")
+    const button = dom.querySelector('button')
+    button?.click()
+    expect(div?.innerHTML).toBe("姓名joy 年龄19")
 
-// })
+})
 
 test("组件插槽", () => {
     const MyComponent = {
