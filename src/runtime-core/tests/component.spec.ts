@@ -209,10 +209,15 @@ test("组件的事件1", () => {
 //     }
 
 //     const MyComponent = {
-//         setup(props){
-//             const age = ref(18)
+//         // setup(props){
+//         //     const age = ref(18)
+//         //     return {
+//         //         age
+//         //     }
+//         // },
+//         data(){
 //             return {
-//                 age
+//                 age: 18
 //             }
 //         },
 //         render() {
@@ -228,3 +233,27 @@ test("组件的事件1", () => {
 //     expect(div?.innerHTML).toBe("姓名joy 年龄19")
 
 // })
+
+test("组件插槽", () => {
+    const MyComponent = {
+        render(){
+            return h(Fragment,[
+                h('div',(this as any).$slots.header()),
+                h('p',(this as any).$slots.footer()),
+            ])
+        }
+    }
+    const VueComponent = {
+        render() {
+            return h(MyComponent,null,{
+                header: () => h('h1','header'),
+                footer: () => h('h2','footer')
+            })
+        },
+    }
+    renderer.render(h(VueComponent), dom)
+    const h1 = dom.querySelector('h1')
+    expect(h1?.innerHTML).toBe("header")
+    const h2 = dom.querySelector('h2')
+    expect(h2?.innerHTML).toBe("footer")
+})

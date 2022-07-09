@@ -19,6 +19,8 @@ export function createVNode(type, props?, children?){
             shapeFlags |= ShapeFlags.TEXT_CHILDREN
         }else if(isArray(children)) {
             shapeFlags |= ShapeFlags.ARRAY_CHILDREN
+        }else if(isObject(children)){
+            shapeFlags |= ShapeFlags.SLOTS_CHILDREN // 组件带有插槽
         }else {
             children = String(children)
         }

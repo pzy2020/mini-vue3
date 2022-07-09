@@ -2,6 +2,7 @@ import { IEffectFn } from "../reactivity/effect"
 import { reactive } from "../reactivity/reactive"
 import { proxyRefs } from "../reactivity/ref"
 import { hasOwn, isFunction, isObject } from "../shared"
+import { ShapeFlags } from "../shared/ShapeFlags"
 import { initProps } from "./componentProps"
 
 export function createComponentInstance(vnode) {
@@ -26,6 +27,7 @@ export function createComponentInstance(vnode) {
         next: null,
         setupState: {},
         emit,
+        slots: {}
     }
 
     return instance
@@ -33,7 +35,8 @@ export function createComponentInstance(vnode) {
 
 const publicPropertyMap = {
     $attrs: (i) => i.attrs,
-    $emit: (i) => i.emit
+    $emit: (i) => i.emit,
+    $slots: (i) => i.slots
 }
 const publicInstanceProxy = {
     get(target, key){
@@ -65,9 +68,18 @@ const publicInstanceProxy = {
         return true
     }
 }
+
+
+function initSlots(instance, children){
+    if(instance.vnode.shapeFlags & ShapeFlags.SLOTS_CHILDREN){
+        instance.slots = children
+    }
+}
+
 export function setupComponent(instance) {
-    let { props , type} = instance.vnode
+    let { props , type, children} = instance.vnode
     initProps(instance, props)
+    initSlots(instance, children)
     instance.proxy = new Proxy(instance, publicInstanceProxy)
     let data = type.data
     if(data){
@@ -88,7 +100,9 @@ export function setupComponent(instance) {
             //         handler(...args)
             //     }
             // }
-            emit: instance.emit
+            emit: instance.emit,
+            slots: instance.slots,
+            attrs: instance.attrs
         }
         const setupResult = setup(instance.props, setupContext)
         if(isFunction(setupResult)){
