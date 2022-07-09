@@ -5,6 +5,13 @@ import { hasOwn, isFunction, isObject } from "../shared"
 import { initProps } from "./componentProps"
 
 export function createComponentInstance(vnode) {
+    const emit =  (event, ...args) => {
+        const eventName = `on${event[0].toUpperCase() + event.slice(1)}`
+        const handler = instance.vnode.props[eventName]
+        if(handler){
+            handler(...args)
+        }
+    }
     let instance:{update: IEffectFn | null} & any = {
         data: null,
         vnode,
@@ -17,14 +24,16 @@ export function createComponentInstance(vnode) {
         proxy: null,
         render: null,
         next: null,
-        setupState: {}
+        setupState: {},
+        emit,
     }
 
     return instance
 }
 
 const publicPropertyMap = {
-    $attrs: (i) => i.attrs
+    $attrs: (i) => i.attrs,
+    $emit: (i) => i.emit
 }
 const publicInstanceProxy = {
     get(target, key){
@@ -70,7 +79,17 @@ export function setupComponent(instance) {
 
     let setup = type.setup
     if(setup){
-        const setupContext = {}
+        // setup函数第二个参数
+        const setupContext = {
+            // emit: (event, ...args) => {
+            //     const eventName = `on${event[0].toUpperCase() + event.slice(1)}`
+            //     const handler = instance.vnode.props[eventName]
+            //     if(handler){
+            //         handler(...args)
+            //     }
+            // }
+            emit: instance.emit
+        }
         const setupResult = setup(instance.props, setupContext)
         if(isFunction(setupResult)){
             instance.render = setupResult

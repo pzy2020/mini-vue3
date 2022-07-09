@@ -164,3 +164,67 @@ test("setup函数返回render函数", () => {
     const div = dom.querySelector('div')
     expect(div?.innerHTML).toBe("姓名joy 年龄18 住址广州")
 })
+
+test("组件的事件1", () => {
+    const VueComponent = {
+        setup(props,{emit}){
+            const name = ref('joy')
+            const age = ref(18)
+            return () => {
+                return h(Fragment,[
+                    h('div',`姓名${name.value} 年龄${age.value}`),
+                    h('button',{onClick: () => emit('change', age)}, '年纪增加'),
+                ])
+            }
+        }
+    }
+
+    renderer.render(h(VueComponent, {onChange: (age) => age.value++}), dom)
+    const div = dom.querySelector('div')
+    expect(div?.innerHTML).toBe("姓名joy 年龄18")
+    const button = dom.querySelector('button')
+    button?.click()
+    expect(div?.innerHTML).toBe("姓名joy 年龄19")
+
+})
+
+// test("组件的事件2", () => {
+//     const VueComponent = {
+//         props: {
+//             age: Number
+//         },
+//         setup(props,{emit}){
+//             const name = ref('joy')
+//             return {
+//                 name,
+//                 age: props.age,
+//             }
+//         },
+//         render() {
+//             return h(Fragment,[
+//                 h('div',`姓名${(this as any).name} 年龄${(this as any).age}`),
+//                 h('button',{onClick: () => (this as any).$emit('change', (this as any).age)}, '年纪增加'),
+//             ])
+//         },
+//     }
+
+//     const MyComponent = {
+//         setup(props){
+//             const age = ref(18)
+//             return {
+//                 age
+//             }
+//         },
+//         render() {
+//             return h(VueComponent, {age: (this as any).age,onChange: (age) => {console.log(age,(this as any).age); (this as any).age ++;console.log(age,(this as any).age);}})
+//         }
+//     }
+
+//     renderer.render(h(MyComponent), dom)
+//     const div = dom.querySelector('div')
+//     expect(div?.innerHTML).toBe("姓名joy 年龄18")
+//     const button = dom.querySelector('button')
+//     button?.click()
+//     expect(div?.innerHTML).toBe("姓名joy 年龄19")
+
+// })
